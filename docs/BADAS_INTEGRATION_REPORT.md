@@ -10,6 +10,17 @@ Primary sources:
 
 ## Runtime status: BLOCKED
 
+`BADASRiskProvider.predict()` fails closed before inference. Its exception
+message begins with `BLOCKED` and names every applicable reason:
+
+- `hf_access_unavailable` when no accepted token can resolve the gated checkpoint;
+- `gpu_unavailable` when CUDA is requested but no CUDA device is usable;
+- `checkpoint_cannot_be_loaded` when the file, official source, or checkpoint
+  load is missing or invalid.
+
+No alternate predictor is substituted. The checked-in manifest is
+`outputs/blockers/badas_runtime.json`.
+
 The official `weights/badas_open.pth` artifact is auto-gated. Access requires
 acceptance on Hugging Face and authenticated download. No credential or
 checkpoint is present on this machine, and this machine has no NVIDIA runtime.
@@ -61,7 +72,7 @@ to downstream VLA code.
 
 ## Wrapper normalization
 
-`BadasRiskProvider` returns:
+`BADASRiskProvider` returns:
 
 ```text
 timestamps: 0, 1/8, 2/8, ...

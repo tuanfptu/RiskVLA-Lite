@@ -1,0 +1,25 @@
+{
+  "status": "BLOCKED",
+  "component": "drama_x_media",
+  "checked_at": "2026-10-02",
+  "dataset": "mgod96/DRAMA-X",
+  "annotation_revision": "34c3bf70d39b2cb003f4269bfc43aa2610e6073e",
+  "annotation_sha256": "e9b50168f6a34aadeef2169f82fc264d44725db0f0e3591771ad3e2e0a8f95da",
+  "annotation_rows": 5686,
+  "reasons": [
+    {
+      "code": "media_unavailable",
+      "message": "All 5686 public image_path and video_path values are empty. The canonical file contains annotations, not image or video bytes."
+    },
+    {
+      "code": "access_required",
+      "message": "Populated media references require Honda Research Institute approval and integrated_output_v2.json. No unrelated media were substituted."
+    },
+    {
+      "code": "grouping_unavailable",
+      "message": "No authoritative source-video or sequence group is published, so train/validation/test manifests remain blocked rather than randomly split."
+    }
+  ],
+  "benchmark_results": null,
+  "metrics": null
+}

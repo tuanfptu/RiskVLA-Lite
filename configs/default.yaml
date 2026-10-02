@@ -31,11 +31,16 @@ risk:
     risk_threshold: 0.8
     slope_threshold: 0.15
   threshold_status: default_unvalidated
+  enabled: true
+  features:
+    - current_risk
+    - risk_slope
+    - recent_peak
 
 vla:
   model_id: Qwen/Qwen3-VL-2B-Instruct
   model_revision: main
-  variant: temporal_risk
+  variant: visual_plus_temporal_risk
   precision: bf16
   device: cuda
   attention_implementation: sdpa

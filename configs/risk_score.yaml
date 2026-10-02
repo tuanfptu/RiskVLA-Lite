@@ -1,11 +1,11 @@
 _base_: default.yaml
 
 experiment:
-  name: current_risk_zero_shot
+  name: visual_plus_current_risk_zero_shot
   variant: B
 
 vla:
-  variant: current_risk
+  variant: visual_plus_current_risk
 
 risk:
   enabled: true

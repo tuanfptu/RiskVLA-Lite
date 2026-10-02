@@ -5,7 +5,7 @@ experiment:
   variant: C
 
 vla:
-  variant: temporal_risk
+  variant: visual_plus_temporal_risk
 
 risk:
   enabled: true
