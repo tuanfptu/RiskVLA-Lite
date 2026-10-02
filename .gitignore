@@ -51,6 +51,8 @@ transformers_cache/
 # Experiment outputs (keep directory placeholder)
 outputs/*
 !outputs/.gitkeep
+!outputs/blockers/
+!outputs/blockers/**
 
 # Generated artifacts; committed evidence files are explicitly allowed
 artifacts/*

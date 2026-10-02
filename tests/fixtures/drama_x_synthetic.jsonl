@@ -1,0 +1,9 @@
+{"image_path":"fixture_01.png","video_path":"group_a.mp4","Risk":"Yes","Pedestrians":{},"Cyclists":{},"suggested_action":"(must) Stop","id":"synthetic_001"}
+{"image_path":"fixture_02.png","video_path":"group_a.mp4","Risk":"Yes","Pedestrians":{},"Cyclists":{},"suggested_action":"Slow down","id":"synthetic_002"}
+{"image_path":"fixture_03.png","video_path":"group_b.mp4","Risk":"No","Pedestrians":{},"Cyclists":{},"suggested_action":"be aware or cautious (of the important object, in case it might effect in future but no direct influence)","id":"synthetic_003"}
+{"image_path":"fixture_04.png","video_path":"group_b.mp4","Risk":"Yes","Pedestrians":{},"Cyclists":{},"suggested_action":"Carefully manoeuvre (around the important object)","id":"synthetic_004"}
+{"image_path":"fixture_05.png","video_path":"group_c.mp4","Risk":"No","Pedestrians":{},"Cyclists":{},"suggested_action":"Follow the vehicle ahead","id":"synthetic_005"}
+{"image_path":"fixture_06.png","video_path":"group_c.mp4","Risk":"Yes","Pedestrians":{},"Cyclists":{},"suggested_action":"Yield","id":"synthetic_006"}
+{"image_path":"fixture_07.png","video_path":"group_d.mp4","Risk":"N/A","Pedestrians":{},"Cyclists":{},"suggested_action":"N/A","id":"synthetic_007"}
+{"image_path":"fixture_08.png","video_path":"group_e.mp4","Risk":"No","Pedestrians":{},"Cyclists":{},"suggested_action":"Start moving","id":"synthetic_008"}
+{"image_path":"fixture_09.png","video_path":"group_f.mp4","Risk":"No","Pedestrians":{},"Cyclists":{},"suggested_action":"Accelerate","id":"synthetic_009"}
