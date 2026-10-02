@@ -8,6 +8,27 @@ Primary sources:
 - [Official gated model repository](https://huggingface.co/nexar-ai/BADAS-Open)
 - [V-JEPA2 base model](https://huggingface.co/facebook/vjepa2-vitl-fpc16-256-ssv2)
 
+## Access recheck: UNVERIFIED
+
+On 2026-10-02 the running Cloud Agent process was checked for `HF_TOKEN`
+without printing or logging a credential. The variable was absent
+(`set=false`). No Hugging Face authentication, model-access, or checkpoint
+resolution request was sent.
+
+This is not evidence that the Hugging Face account lacks BADAS access. Cursor
+injects Runtime Secrets into an agent when that agent starts; an already
+running agent does not receive secrets added later. The checkpoint therefore
+remains unresolved in this process.
+
+| Check | Status |
+|---|---|
+| Hugging Face authentication | **UNVERIFIED** |
+| `nexar-ai/BADAS-Open` access | **UNVERIFIED** |
+| Checkpoint resolution/download | **NOT ATTEMPTED** |
+| GPU inference | **BLOCKED** |
+
+No latency, VRAM, or probability sequence is claimed.
+
 ## Runtime status: BLOCKED
 
 `BADASRiskProvider.predict()` fails closed before inference. Its exception
@@ -21,11 +42,10 @@ message begins with `BLOCKED` and names every applicable reason:
 No alternate predictor is substituted. The checked-in manifest is
 `outputs/blockers/badas_runtime.json`.
 
-The official `weights/badas_open.pth` artifact is auto-gated. Access requires
-acceptance on Hugging Face and authenticated download. No credential or
-checkpoint is present on this machine, and this machine has no NVIDIA runtime.
-A real-video smoke test has therefore **not** been run. No BADAS latency, VRAM,
-or output values are claimed.
+The official `weights/badas_open.pth` artifact is auto-gated. This machine has
+no NVIDIA runtime, and the current agent process has no `HF_TOKEN`, so the
+checkpoint was neither resolved nor downloaded here. A real-video smoke test
+has **not** been run. No BADAS latency, VRAM, or output values are claimed.
 
 ## VERIFIED source contract
 

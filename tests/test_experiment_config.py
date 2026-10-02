@@ -71,10 +71,22 @@ def test_invalid_variant_feature_contract_fails() -> None:
 
 
 def test_blocker_manifests_contain_no_fabricated_metrics() -> None:
-    for name in ("badas_runtime.json", "drama_media.json"):
-        payload = json.loads(
-            (ROOT / "outputs/blockers" / name).read_text(encoding="utf-8")
-        )
+    badas = json.loads(
+        (ROOT / "outputs/blockers/badas_runtime.json").read_text(encoding="utf-8")
+    )
+    drama = json.loads(
+        (ROOT / "outputs/blockers/drama_media.json").read_text(encoding="utf-8")
+    )
+    assert badas["access"] == "UNVERIFIED"
+    assert badas["runtime"] == "BLOCKED"
+    assert badas["checkpoint_download"] == "NOT_ATTEMPTED"
+    assert drama["access"] == "UNVERIFIED"
+    assert drama["media_runtime"] == "NOT_DOWNLOADED"
+    assert drama["archive_inspection"] == "NOT_ATTEMPTED"
+    for payload in (badas, drama):
         assert payload["status"] == "BLOCKED"
         assert payload["metrics"] is None
         assert payload["reasons"]
+        serialized = json.dumps(payload)
+        assert "hf_" not in serialized
+        assert "://" not in serialized
