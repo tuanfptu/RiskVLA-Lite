@@ -6,18 +6,35 @@
   "annotation_revision": "34c3bf70d39b2cb003f4269bfc43aa2610e6073e",
   "annotation_sha256": "e9b50168f6a34aadeef2169f82fc264d44725db0f0e3591771ad3e2e0a8f95da",
   "annotation_rows": 5686,
+  "download_probe": {
+    "url_present": true,
+    "page_host": "usa.honda-ri.com",
+    "page_status_browser_user_agent": 200,
+    "page_status_default_python_user_agent": 403,
+    "request_api_status": 200,
+    "dataset_name": "DRAMA Dataset",
+    "expires_at": "2026-10-08T00:00:00Z",
+    "file_name": "drama.tar.gz",
+    "storage_host": "s3.us-west-2.amazonaws.com",
+    "head_status": 403,
+    "range_status": 206,
+    "content_type": "application/x-tar",
+    "bytes_total": 979616585993,
+    "bytes_read": 1,
+    "full_download": false
+  },
   "reasons": [
     {
       "code": "media_unavailable",
-      "message": "All 5686 public image_path and video_path values are empty. The canonical file contains annotations, not image or video bytes."
+      "message": "The approved drama.tar.gz object responds (979616585993 bytes), but it was not downloaded. All 5686 public image_path and video_path values remain empty."
     },
     {
-      "code": "access_required",
-      "message": "Populated media references require Honda Research Institute approval and integrated_output_v2.json. No unrelated media were substituted."
+      "code": "package_not_retrieved",
+      "message": "Honda returned an approved DRAMA Dataset request that expires at 2026-10-08T00:00:00Z. integrated_output_v2.json and licensed media are not present locally. No unrelated media were substituted."
     },
     {
       "code": "grouping_unavailable",
-      "message": "No authoritative source-video or sequence group is published, so train/validation/test manifests remain blocked rather than randomly split."
+      "message": "No authoritative source-video or sequence group is available from the public annotations, so train/validation/test manifests remain blocked rather than randomly split."
     }
   ],
   "benchmark_results": null,

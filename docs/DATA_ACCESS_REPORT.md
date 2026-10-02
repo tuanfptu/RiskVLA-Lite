@@ -98,15 +98,43 @@ These scopes are not interchangeable. Media and populated private metadata
 must remain outside Git. Publication/redistribution questions should be
 confirmed with the dataset owner.
 
+## Supplied download URL
+
+`DRAMA_DOWNLOAD_URL` is present and was not written into Git. With a browser
+user agent, the URL returns HTTP 200 and the Honda Research Institute page
+titled "Dataset Download Page". The default Python user agent receives HTTP
+403 from that HTML page.
+
+The page's dataset-sharing request API returned HTTP 200:
+
+- dataset name: `DRAMA Dataset`
+- request expiry: `2026-10-08T00:00:00Z`
+- one listed object: `drama.tar.gz`
+
+A one-byte ranged GET of that object, after the portal redirect, returned
+HTTP 206 from `s3.us-west-2.amazonaws.com` with
+`content-type: application/x-tar` and
+`content-range: bytes 0-0/979616585993`. A HEAD to the same redirected object
+returned HTTP 403. The archive is 979,616,585,993 bytes (912.34 GiB). One
+byte was read. The archive was not downloaded and is not present on this
+machine.
+
 ## BLOCKED
 
-Benchmark media loading, media deduplication, source-group verification, and
-temporal evaluation are blocked until an approved package containing
-`integrated_output_v2.json` and licensed media is supplied.
+The approved `drama.tar.gz` object responds, but benchmark media loading,
+media deduplication, source-group verification, and temporal evaluation remain
+blocked. The archive was not retrieved, so `integrated_output_v2.json` and
+licensed media are not on disk. All 5,686 public `image_path` and `video_path`
+values remain empty. No authoritative source group has been derived. No
+unrelated media were substituted.
+
+The Honda request expires at `2026-10-08T00:00:00Z`.
 
 ## Access completion checklist
 
-1. Obtain approval through the official Honda request flow.
+1. The supplied Honda download URL is live and the `drama.tar.gz` object
+   responds. Retrieve it outside this repository before
+   `2026-10-08T00:00:00Z`.
 2. Store the package outside this repository.
 3. Run the canonical population script against
    `drama_x_annotated.jsonl` (the model card's `.json` example is stale).

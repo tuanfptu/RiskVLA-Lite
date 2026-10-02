@@ -5,18 +5,29 @@
   "model_id": "nexar-ai/BADAS-Open",
   "model_revision": "8fda93711e79d72401b0a4efc151b56455885cd2",
   "source_revision": "01368cf5a164a576ae46eae3baf544e4ecdb2946",
+  "checkpoint_filename": "weights/badas_open.pth",
+  "access": {
+    "hf_token_present": true,
+    "authenticated": true,
+    "repo_status": 200,
+    "gated": "auto",
+    "checkpoint_listed": true,
+    "checkpoint_resolved": true,
+    "checkpoint_bytes": 3979436545,
+    "lfs_oid": "6b1ba91504542582412fee5100a17d6e06c87cb09619efec2efc34484f7042aa",
+    "head_status": 200,
+    "head_redirects": [302],
+    "content_type": "application/octet-stream",
+    "checkpoint_downloaded": false
+  },
   "reasons": [
-    {
-      "code": "hf_access_unavailable",
-      "message": "The official checkpoint is gated. This workspace has no accepted Hugging Face access or HF_TOKEN."
-    },
     {
       "code": "gpu_unavailable",
       "message": "nvidia-smi is unavailable and this machine has no CUDA runtime."
     },
     {
       "code": "checkpoint_cannot_be_loaded",
-      "message": "weights/badas_open.pth is not present, and the official BADAS package is not installed. No checkpoint load or inference was attempted."
+      "message": "weights/badas_open.pth resolves at the pinned revision (3979436545 bytes) but the body was not downloaded. The official BADAS package is not installed. No checkpoint load or inference was attempted."
     }
   ],
   "smoke_test": "NOT_RUN",
