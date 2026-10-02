@@ -33,9 +33,11 @@ hypothesis is supported.
 | Component | Status | Evidence |
 |---|---|---|
 | DRAMA-X annotation schema and labels | **VERIFIED** | 5,686 canonical public annotation rows and nine native labels |
-| DRAMA-X media and grouping | **BLOCKED** | [`outputs/blockers/drama_media.json`](outputs/blockers/drama_media.json) |
+| DRAMA-X private download | **UNVERIFIED** | Credential was not injected into this running agent; media are **NOT DOWNLOADED** |
+| DRAMA-X grouping | **BLOCKED** | [`outputs/blockers/drama_media.json`](outputs/blockers/drama_media.json) |
 | BADAS source integration | **VERIFIED** | Official source and checkpoint contract inspected |
-| BADAS runtime | **BLOCKED** | [`outputs/blockers/badas_runtime.json`](outputs/blockers/badas_runtime.json) |
+| BADAS checkpoint access | **UNVERIFIED** | No authenticated request was sent from this running agent |
+| BADAS runtime | **BLOCKED** | No CUDA GPU; [`outputs/blockers/badas_runtime.json`](outputs/blockers/badas_runtime.json) |
 | Qwen integration | **INFRASTRUCTURE-READY** | Public model API implemented; weights not run on this machine |
 | A/B/C research results | **NOT MEASURED** | Requires media, model runtime, and valid splits |
 

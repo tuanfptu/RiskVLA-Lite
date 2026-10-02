@@ -8,6 +8,27 @@ Primary sources:
 - [Official gated model repository](https://huggingface.co/nexar-ai/BADAS-Open)
 - [V-JEPA2 base model](https://huggingface.co/facebook/vjepa2-vitl-fpc16-256-ssv2)
 
+## Access recheck: UNVERIFIED
+
+On 2026-10-02 the running Cloud Agent process was checked for `HF_TOKEN`
+without printing or logging a credential. The variable was absent
+(`set=false`). No Hugging Face authentication, model-access, or checkpoint
+resolution request was sent.
+
+This is not evidence that the Hugging Face account lacks BADAS access. Cursor
+injects Runtime Secrets into an agent when that agent starts; an already
+running agent does not receive secrets added later. The checkpoint therefore
+remains unresolved in this process.
+
+| Check | Status |
+|---|---|
+| Hugging Face authentication | **UNVERIFIED** |
+| `nexar-ai/BADAS-Open` access | **UNVERIFIED** |
+| Checkpoint resolution/download | **NOT ATTEMPTED** |
+| GPU inference | **BLOCKED** |
+
+No latency, VRAM, or probability sequence is claimed.
+
 ## Runtime status: BLOCKED
 
 Authenticated access to the gated repository is verified. A Hugging Face token
