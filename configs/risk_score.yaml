@@ -1,0 +1,13 @@
+_base_: default.yaml
+
+experiment:
+  name: current_risk_zero_shot
+  variant: B
+
+vla:
+  variant: current_risk
+
+risk:
+  enabled: true
+  features:
+    - current_risk

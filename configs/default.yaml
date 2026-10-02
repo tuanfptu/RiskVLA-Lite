@@ -1,0 +1,58 @@
+project:
+  name: RiskVLA-Lite
+  seed: 42
+  status: research_prototype
+
+data:
+  dataset: DRAMA-X
+  annotation_revision: 34c3bf70d39b2cb003f4269bfc43aa2610e6073e
+  annotation_sha256: e9b50168f6a34aadeef2169f82fc264d44725db0f0e3591771ad3e2e0a8f95da
+  split_version: blocked-v0
+  action_mapping: configs/action_mapping.yaml
+
+vision:
+  frame_count: 4
+  sampler: uniform
+  require_pre_event: true
+  max_pixels_per_frame: 50176  # 224 x 224 starting budget; processor may resize.
+
+risk:
+  provider: badas
+  model_id: nexar-ai/BADAS-Open
+  model_revision: 8fda93711e79d72401b0a4efc151b56455885cd2
+  checkpoint_filename: weights/badas_open.pth
+  source_revision: 01368cf5a164a576ae46eae3baf544e4ecdb2946
+  target_fps: 8.0
+  window_frames: 16
+  feature_window_seconds: 2.0
+  recent_peak_window_seconds: 2.0
+  trigger:
+    policy: risk_or_slope
+    risk_threshold: 0.8
+    slope_threshold: 0.15
+  threshold_status: default_unvalidated
+
+vla:
+  model_id: Qwen/Qwen3-VL-2B-Instruct
+  model_revision: main
+  variant: temporal_risk
+  precision: bf16
+  device: cuda
+  attention_implementation: sdpa
+  do_sample: false
+  num_beams: 1
+  max_new_tokens: 64
+
+evaluation:
+  critical_actions:
+    - BRAKE_OR_STOP
+  severity:
+    MAINTAIN: 0
+    CAUTION: 1
+    SLOW: 2
+    MANEUVER: 2
+    BRAKE_OR_STOP: 3
+  lead_time_thresholds_seconds:
+    - 0.5
+    - 1.0
+    - 2.0

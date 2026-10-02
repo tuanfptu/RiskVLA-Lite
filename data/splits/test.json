@@ -1,0 +1,9 @@
+{
+  "status": "BLOCKED",
+  "split": "test",
+  "split_version": "blocked-v0",
+  "seed": 42,
+  "group_field": null,
+  "samples": [],
+  "reason": "Public DRAMA-X annotations contain no authoritative source-video or sequence group. Random frame-level splitting is prohibited."
+}
