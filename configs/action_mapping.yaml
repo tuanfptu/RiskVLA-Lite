@@ -1,0 +1,71 @@
+version: "1.0.0"
+status: frozen
+frozen_at_utc: "2026-10-02T00:00:00Z"
+frozen_before_test_evaluation: true
+source:
+  dataset: mgod96/DRAMA-X
+  revision: 34c3bf70d39b2cb003f4269bfc43aa2610e6073e
+  annotation_sha256: e9b50168f6a34aadeef2169f82fc264d44725db0f0e3591771ad3e2e0a8f95da
+  records: 5686
+
+macro_actions:
+  - MAINTAIN
+  - CAUTION
+  - SLOW
+  - BRAKE_OR_STOP
+  - MANEUVER
+
+severity:
+  MAINTAIN: 0
+  CAUTION: 1
+  SLOW: 2
+  MANEUVER: 2
+  BRAKE_OR_STOP: 3
+
+# Mapping decisions are semantic and were frozen before any model result.
+# N/A is missing ground truth, not evidence that maintaining is correct.
+mappings:
+  "(must) Stop":
+    macro_action: BRAKE_OR_STOP
+    rationale: "The native instruction explicitly requires stopping."
+    include_in_evaluation: true
+
+  "be aware or cautious (of the important object, in case it might effect in future but no direct influence)":
+    macro_action: CAUTION
+    rationale: "The native instruction calls for monitoring without an immediate speed or path change."
+    include_in_evaluation: true
+
+  "Carefully manoeuvre (around the important object)":
+    macro_action: MANEUVER
+    rationale: "The native instruction explicitly requests a careful lateral/path maneuver."
+    include_in_evaluation: true
+
+  "Slow down":
+    macro_action: SLOW
+    rationale: "The native instruction explicitly requests speed reduction."
+    include_in_evaluation: true
+
+  "Follow the vehicle ahead":
+    macro_action: CAUTION
+    rationale: "Following is represented as monitored continuation, not acceleration or an explicit brake command."
+    include_in_evaluation: true
+
+  "Yield":
+    macro_action: SLOW
+    rationale: "Yielding requires reducing/providing right of way but does not always imply a complete stop."
+    include_in_evaluation: true
+
+  "N/A":
+    macro_action: null
+    rationale: "The source has no action annotation; treating missing data as MAINTAIN would create false labels."
+    include_in_evaluation: false
+
+  "Start moving":
+    macro_action: MAINTAIN
+    rationale: "The compact action space has no GO class; this is a non-protective proceed/continue action."
+    include_in_evaluation: true
+
+  "Accelerate":
+    macro_action: MAINTAIN
+    rationale: "The compact action space has no ACCELERATE class; this is grouped with non-protective continuation."
+    include_in_evaluation: true

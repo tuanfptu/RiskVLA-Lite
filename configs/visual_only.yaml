@@ -1,0 +1,11 @@
+_base_: default.yaml
+
+experiment:
+  name: visual_only_zero_shot
+  variant: A
+
+vla:
+  variant: visual_only
+
+risk:
+  enabled: false

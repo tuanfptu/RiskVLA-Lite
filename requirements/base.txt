@@ -1,0 +1,14 @@
+# Install the package itself with: python -m pip install -e .
+numpy>=1.26,<3
+Pillow>=10.3,<13
+PyYAML>=6.0.1,<7
+
+# Runtime inference stack. Resolve an appropriate PyTorch CUDA wheel for the
+# target host rather than copying a CUDA index URL into this file.
+accelerate>=1.0,<2
+albumentations>=1.4,<3
+huggingface-hub>=0.27,<2
+opencv-python-headless>=4.10,<5
+torch>=2.4,<3
+torchvision>=0.19,<1
+transformers>=4.57,<6

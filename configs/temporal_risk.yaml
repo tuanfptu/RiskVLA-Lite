@@ -1,0 +1,15 @@
+_base_: default.yaml
+
+experiment:
+  name: temporal_risk_zero_shot
+  variant: C
+
+vla:
+  variant: temporal_risk
+
+risk:
+  enabled: true
+  features:
+    - current_risk
+    - risk_slope
+    - recent_peak

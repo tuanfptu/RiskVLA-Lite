@@ -1,0 +1,61 @@
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*credentials*
+*secret*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+
+# Raw/processed datasets and media
+data/raw/
+data/processed/
+data/media/
+datasets/
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+
+# Model and trainer artifacts
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+checkpoints/
+models/
+wandb/
+runs/
+
+# Caches
+.cache/
+hf_cache/
+transformers_cache/
+
+# Experiment outputs (keep directory placeholder)
+outputs/*
+!outputs/.gitkeep
+
+# Generated artifacts; committed evidence files are explicitly allowed
+artifacts/*
+!artifacts/.gitkeep
+!artifacts/label_inventory.json
+
+# Notebook checkpoints
+.ipynb_checkpoints/
