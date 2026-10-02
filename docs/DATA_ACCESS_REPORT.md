@@ -98,11 +98,30 @@ These scopes are not interchangeable. Media and populated private metadata
 must remain outside Git. Publication/redistribution questions should be
 confirmed with the dataset owner.
 
+## Private download recheck: UNVERIFIED
+
+On 2026-10-02 the running Cloud Agent process was checked for
+`DRAMA_DOWNLOAD_URL` without printing or logging its value. The variable was
+absent (`set=false`). No request was sent, so HTTP status, redirects, content
+type, content length, filename, and archive structure were not observed.
+
+This is not evidence that Honda access was denied. Runtime Secrets are injected
+when an agent starts; this already-running agent did not receive the variable.
+The full dataset was intentionally not downloaded.
+
+| Check | Status |
+|---|---|
+| Honda download URL reachability | **UNVERIFIED** |
+| Archive structure | **NOT INSPECTED** |
+| Media bytes | **NOT DOWNLOADED** |
+| Source grouping and benchmark splits | **BLOCKED** |
+
 ## BLOCKED
 
 Benchmark media loading, media deduplication, source-group verification, and
-temporal evaluation are blocked until an approved package containing
-`integrated_output_v2.json` and licensed media is supplied.
+temporal evaluation remain blocked. They require the private package to be
+reachable from a process that actually has the download credential, followed by
+a selective, non-committed inspection.
 
 ## Access completion checklist
 

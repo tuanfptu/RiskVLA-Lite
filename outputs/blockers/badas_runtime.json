@@ -5,18 +5,18 @@
   "model_id": "nexar-ai/BADAS-Open",
   "model_revision": "8fda93711e79d72401b0a4efc151b56455885cd2",
   "source_revision": "01368cf5a164a576ae46eae3baf544e4ecdb2946",
+  "access": "UNVERIFIED",
+  "runtime": "BLOCKED",
+  "checkpoint_download": "NOT_ATTEMPTED",
+  "authentication_request_sent": false,
   "reasons": [
     {
-      "code": "hf_access_unavailable",
-      "message": "The official checkpoint is gated. This workspace has no accepted Hugging Face access or HF_TOKEN."
+      "code": "token_not_injected",
+      "message": "HF_TOKEN was absent from this already-running Cloud Agent process. No authenticated Hugging Face request was made, and the checkpoint was not resolved or downloaded."
     },
     {
       "code": "gpu_unavailable",
-      "message": "nvidia-smi is unavailable and this machine has no CUDA runtime."
-    },
-    {
-      "code": "checkpoint_cannot_be_loaded",
-      "message": "weights/badas_open.pth is not present, and the official BADAS package is not installed. No checkpoint load or inference was attempted."
+      "message": "This Cloud Agent has no CUDA GPU. Runtime inference remains blocked until RTX 3090 validation."
     }
   ],
   "smoke_test": "NOT_RUN",

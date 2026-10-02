@@ -6,18 +6,22 @@
   "annotation_revision": "34c3bf70d39b2cb003f4269bfc43aa2610e6073e",
   "annotation_sha256": "e9b50168f6a34aadeef2169f82fc264d44725db0f0e3591771ad3e2e0a8f95da",
   "annotation_rows": 5686,
+  "access": "UNVERIFIED",
+  "media_runtime": "NOT_DOWNLOADED",
+  "archive_inspection": "NOT_ATTEMPTED",
+  "request_sent": false,
   "reasons": [
     {
-      "code": "media_unavailable",
-      "message": "All 5686 public image_path and video_path values are empty. The canonical file contains annotations, not image or video bytes."
+      "code": "download_url_not_injected",
+      "message": "DRAMA_DOWNLOAD_URL was absent from this already-running Cloud Agent process. No reachability or archive-header request was sent."
     },
     {
-      "code": "access_required",
-      "message": "Populated media references require Honda Research Institute approval and integrated_output_v2.json. No unrelated media were substituted."
+      "code": "media_not_downloaded",
+      "message": "No DRAMA media bytes were downloaded. Public annotations still have empty image and video paths."
     },
     {
       "code": "grouping_unavailable",
-      "message": "No authoritative source-video or sequence group is published, so train/validation/test manifests remain blocked rather than randomly split."
+      "message": "No authoritative source-video or sequence group is available, so train/validation/test manifests remain blocked."
     }
   ],
   "benchmark_results": null,
