@@ -79,10 +79,18 @@ def test_blocker_manifests_contain_no_fabricated_metrics() -> None:
     nexar = json.loads(
         (ROOT / "outputs/blockers/nexar_media.json").read_text(encoding="utf-8")
     )
-    assert badas["access"] == "VERIFIED"
     assert badas["runtime"] == "BLOCKED"
-    assert badas["checkpoint_download"] == "NOT_ATTEMPTED"
-    assert badas["checkpoint_bytes"] == 3979436545
+    assert badas["access"]["authenticated"] is True
+    assert badas["access"]["checkpoint_resolved"] is True
+    assert badas["access"]["checkpoint_downloaded"] is False
+    assert badas["access"]["checkpoint_bytes"] == 3979436545
+    assert badas["access"]["lfs_oid"] == (
+        "6b1ba91504542582412fee5100a17d6e06c87cb09619efec2efc34484f7042aa"
+    )
+    assert {item["code"] for item in badas["reasons"]} >= {
+        "gpu_unavailable",
+        "checkpoint_cannot_be_loaded",
+    }
     assert nexar["metadata_access"] == "VERIFIED"
     assert nexar["media"] == "NOT_DOWNLOADED"
     assert nexar["action_annotations"] == "NOT_CREATED"
@@ -93,5 +101,5 @@ def test_blocker_manifests_contain_no_fabricated_metrics() -> None:
         assert payload["metrics"] is None
         assert payload["reasons"]
         serialized = json.dumps(payload)
-        assert "hf_" not in serialized
         assert "://" not in serialized
+        assert "hf_" not in serialized.replace('"hf_token_present"', "")

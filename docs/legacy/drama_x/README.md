@@ -8,7 +8,7 @@ Retained here:
 
 - `DATA_ACCESS_REPORT.md`: historical public-annotation audit
 - `label_inventory.json`: counts from the public DRAMA-X JSONL
-- `drama_media_blocker.json`: the previous blocked-media record
+- `drama_media_blocker.json`: historical archive probe (HTTP statuses, archive size, expiry). Not an active blocker.
 - `configs/legacy/drama_x_action_mapping.yaml`: the old native-label mapping
 - `src/riskvla/legacy/`: the old loader
 - `scripts/legacy/inspect_drama_x.py`: the old inspection script

@@ -105,38 +105,47 @@ These scopes are not interchangeable. Media and populated private metadata
 must remain outside Git. Publication/redistribution questions should be
 confirmed with the dataset owner.
 
-## Private download recheck: UNVERIFIED
+## Supplied download URL
 
-On 2026-10-02 the running Cloud Agent process was checked for
-`DRAMA_DOWNLOAD_URL` without printing or logging its value. The variable was
-absent (`set=false`). No request was sent, so HTTP status, redirects, content
-type, content length, filename, and archive structure were not observed.
+`DRAMA_DOWNLOAD_URL` is present and was not written into Git. With a browser
+user agent, the URL returns HTTP 200 and the Honda Research Institute page
+titled "Dataset Download Page". The default Python user agent receives HTTP
+403 from that HTML page.
 
-This is not evidence that Honda access was denied. Runtime Secrets are injected
-when an agent starts; this already-running agent did not receive the variable.
-The full dataset was intentionally not downloaded.
+The page's dataset-sharing request API returned HTTP 200:
 
-| Check | Status |
-|---|---|
-| Honda download URL reachability | **UNVERIFIED** |
-| Archive structure | **NOT INSPECTED** |
-| Media bytes | **NOT DOWNLOADED** |
-| Source grouping and benchmark splits | **BLOCKED** |
+- dataset name: `DRAMA Dataset`
+- request expiry: `2026-10-08T00:00:00Z`
+- one listed object: `drama.tar.gz`
+
+A one-byte ranged GET of that object, after the portal redirect, returned
+HTTP 206 from `s3.us-west-2.amazonaws.com` with
+`content-type: application/x-tar` and
+`content-range: bytes 0-0/979616585993`. A HEAD to the same redirected object
+returned HTTP 403. The archive is 979,616,585,993 bytes (912.34 GiB). One
+byte was read. The archive was not downloaded and is not present on this
+machine.
 
 ## BLOCKED
 
-Benchmark media loading, media deduplication, source-group verification, and
-temporal evaluation remain blocked. They require the private package to be
-reachable from a process that actually has the download credential, followed by
-a selective, non-committed inspection.
+The approved `drama.tar.gz` object responds, but benchmark media loading,
+media deduplication, source-group verification, and temporal evaluation remain
+blocked. The archive was not retrieved, so `integrated_output_v2.json` and
+licensed media are not on disk. All 5,686 public `image_path` and `video_path`
+values remain empty. No authoritative source group has been derived. No
+unrelated media were substituted.
+
+The Honda request expires at `2026-10-08T00:00:00Z`.
 
 ## Access completion checklist
 
-1. Obtain approval through the official Honda request flow.
+1. The supplied Honda download URL is live and the `drama.tar.gz` object
+   responds. Retrieve it outside this repository before
+   `2026-10-08T00:00:00Z`.
 2. Store the package outside this repository.
 3. Run the canonical population script against
    `drama_x_annotated.jsonl` (the model card's `.json` example is stale).
 4. Inspect URL/path liveness and hashes without redistributing assets.
 5. Add an owner-documented source-group mapping or official split.
-6. Regenerate split manifests and `docs/DATA_SPLIT_REPORT.md`.
+6. If this legacy dataset is ever revisited, keep any DRAMA split note separate. Do not replace the active Nexar `docs/DATA_SPLIT_REPORT.md`.
 7. Keep event-time evaluation disabled unless verified timestamps are added.

@@ -27,21 +27,37 @@ No latency, VRAM, or probability sequence is claimed.
 
 ## Runtime status: BLOCKED
 
-`BADASRiskProvider.predict()` fails closed before inference. Its exception
-message begins with `BLOCKED` and names every applicable reason:
+Authenticated access to the gated repository is verified. A Hugging Face token
+is present in the environment, and `GET /api/whoami-v2` returned HTTP 200. The
+model API returned HTTP 200 for `nexar-ai/BADAS-Open` at revision
+`8fda93711e79d72401b0a4efc151b56455885cd2` (`gated: auto`). The token value is
+not recorded in this repository.
+
+`weights/badas_open.pth` resolves without downloading the body:
+
+- Hub `paths-info` reports a file of 3,979,436,545 bytes.
+- LFS oid: `6b1ba91504542582412fee5100a17d6e06c87cb09619efec2efc34484f7042aa`.
+- A header-only resolve request returned HTTP 302, then HTTP 200 from
+  `us.aws.cdn.hf.co`, with `content-type: application/octet-stream` and
+  `content-length: 3979436545`.
+
+That size matches `EXPECTED_CHECKPOINT_BYTES`. The checkpoint body was not
+downloaded, the official BADAS package is not installed, and this machine has
+no NVIDIA runtime. A real-video smoke test has therefore **not** been run. No
+BADAS latency, VRAM, or output values are claimed.
+
+`BADASRiskProvider.predict()` still fails closed before inference. Its
+exception message begins with `BLOCKED` and names every applicable reason:
 
 - `hf_access_unavailable` when no accepted token can resolve the gated checkpoint;
 - `gpu_unavailable` when CUDA is requested but no CUDA device is usable;
 - `checkpoint_cannot_be_loaded` when the file, official source, or checkpoint
   load is missing or invalid.
 
-No alternate predictor is substituted. The checked-in manifest is
-`outputs/blockers/badas_runtime.json`.
-
-The official `weights/badas_open.pth` artifact is auto-gated. File metadata
-was resolved with an authenticated HEAD request. This machine has no NVIDIA
-runtime, so the body was not downloaded and a real-video smoke test has
-**not** been run. No BADAS latency, VRAM, or output values are claimed.
+On this machine the remaining manifest reasons are `gpu_unavailable` and
+`checkpoint_cannot_be_loaded`. No alternate predictor is substituted. The
+checked-in manifest is `outputs/blockers/badas_runtime.json`. Runtime stays
+blocked until the checkpoint body is loaded on a CUDA machine.
 
 ## VERIFIED source contract
 
@@ -138,5 +154,6 @@ sequence.
   see `docs/LIMITATIONS.md`.
 - Real RTX 3090 latency and memory.
 
-These questions remain open until the official checkpoint is available and the
-smoke test artifact is attached.
+These questions remain open until the resolved checkpoint is downloaded and
+loaded on a CUDA machine and the smoke test artifact is attached. Resolving
+the gated file is no longer the blocking condition.
