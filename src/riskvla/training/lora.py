@@ -1,9 +1,15 @@
-"""Guarded language-attention LoRA setup for Qwen3-VL."""
+"""Guarded language-attention LoRA setup for Qwen3-VL.
+
+Status: NOT STARTED. LoRA is not part of the Nexar pivot. Do not train it
+until zero-shot A/B/C results exist. BADAS stays frozen either way.
+"""
 
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from typing import Any
+
+LORA_STATUS = "NOT_STARTED"
 
 
 @dataclass(frozen=True)

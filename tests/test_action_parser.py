@@ -22,6 +22,11 @@ def test_diagnostic_output_requires_explicit_mode() -> None:
     assert result.hazard_type == "pedestrian"
 
 
+def test_maneuver_is_outside_the_primary_action_space() -> None:
+    with pytest.raises(InvalidActionOutput, match="Unknown action"):
+        parse_action_output('{"action":"MANEUVER","confidence":0.4}')
+
+
 @pytest.mark.parametrize(
     ("raw", "message"),
     [

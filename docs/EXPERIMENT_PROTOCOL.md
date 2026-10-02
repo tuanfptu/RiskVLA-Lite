@@ -1,14 +1,20 @@
 # Experiment Protocol
 
-## Governance
+## Order
 
-1. Verify media access and source grouping.
-2. Freeze action mapping and split manifests.
-3. Run zero-shot A/B/C on the same validation rows with four frames.
-4. Select trigger thresholds on validation only.
-5. Repeat with eight frames only if four-frame evidence motivates it.
-6. Decide whether a frozen head or LoRA is justified.
-7. Freeze configs and evaluate test once.
+1. Download Nexar on persistent storage. Do not download it in the cloud
+   development environment.
+2. Annotate 300–500 clips with the human protocol. Do not auto-label.
+3. Freeze the action schema, prompts, and the video-level split.
+4. Run zero-shot A, B, and C on the same validation rows with four frames.
+5. Select trigger thresholds on validation only.
+6. Consider eight frames only if the four-frame result justifies the extra
+   visual context.
+7. Only then decide whether a frozen action head or LoRA is justified.
+8. Freeze the chosen configuration and evaluate test once.
+
+LoRA status remains `NOT_STARTED` until step 7 has evidence. BADAS stays
+frozen throughout.
 
 Every run stores a resolved config and metrics record under
 `outputs/experiments/<experiment_id>/`.
@@ -17,106 +23,82 @@ Every run stores a resolved config and metrics record under
 
 Held constant across A/B/C:
 
-- Qwen model revision and precision;
-- eligible sample IDs and split;
-- image preprocessing and frame indices;
-- prompt wording except the declared conditioning block;
-- generation settings (`do_sample=false`, one beam, 64-token ceiling);
-- strict output parser;
-- action mapping and metric definitions;
-- random seed 42.
+- Qwen revision and precision;
+- eligible sample ids and split;
+- the same pre-cutoff frames;
+- prompt text except the declared conditioning block;
+- greedy decoding (`do_sample=false`), one beam, and a 64-token ceiling;
+- the strict four-class parser;
+- metric definitions;
+- seed 42.
 
-BADAS remains frozen. Variant A does not receive risk values indirectly through
-filenames, metadata, frame timing selected from future risk, or prompt text.
-For the primary conditioning ablation, all variants use the same frame set.
-Risk-centered frame selection is a separate ablation because it changes visual
-evidence.
+Variant A must not receive risk through filenames, metadata, frame timing
+chosen from future risk, or prompt text. Risk-centered frame selection is a
+separate experiment.
 
-## Output schema
-
-Primary output:
+## Output
 
 ```json
-{"action": "SLOW", "confidence": 0.87}
+{"action": "SLOW", "confidence": 0.84}
 ```
 
-Allowed actions are the five frozen macro-actions. Confidence must be finite
-and within `[0, 1]`. Extra prose, unknown labels, malformed JSON, duplicate
-objects, and invalid confidence values are invalid outputs. They are not
-coerced and contribute false negatives to class metrics.
+Allowed actions are `MAINTAIN`, `CAUTION`, `SLOW`, and `BRAKE_OR_STOP`.
+Confidence is finite and inside `[0, 1]`. Extra prose, unknown labels
+including `MANEUVER`, malformed JSON, and invalid confidence stay invalid.
 
-## Risk features
+## Risk features at cutoff t
 
-At prediction cutoff `t`:
+- `current_risk`: latest finite score at or before `t`
+- `risk_slope`: least-squares slope over the trailing window
+- `recent_peak`: maximum finite score in the trailing peak window
+- diagnostics: moving mean and volatility
+- `trigger_timestamp`: first time the selected policy fires at or before `t`
 
-- `current_risk`: latest finite score at or before `t`;
-- `risk_slope`: least-squares slope per second over the configured trailing
-  window;
-- `recent_peak`: maximum finite score in the trailing peak window;
-- diagnostic-only `risk_mean` and `risk_volatility`;
-- `trigger_timestamp`: first threshold/slope policy activation.
+No future score enters the features. Warm-up `NaN` values stay invalid.
 
-No future score may enter features. Warm-up `NaN` values remain invalid.
+## Frames
 
-## Frame policy
-
-The default uses four uniformly selected frames from an allowed pre-cutoff
-window. When event time is known, every frame timestamp must be strictly less
-than the event. A risk-centered policy may center a pre-trigger window on a
-trigger at or before the prediction cutoff; it may never extend into future or
-post-event frames.
+Default: 4 frames with timestamps at or before the observation cutoff and,
+when an event exists, strictly before `time_of_event`. Record the timestamps.
+Eight frames are not the primary setting.
 
 ## Metrics
 
-Report accuracy, macro-F1, per-class precision/recall/F1, confusion matrix, and
-invalid-output rate. Also report:
+Report accuracy, macro-F1, per-class precision, recall, and F1, plus:
 
-- critical recall for `BRAKE_OR_STOP`;
-- under-reaction (predicted severity lower than target);
-- over-reaction (predicted severity higher than target);
-- unnecessary braking (`BRAKE_OR_STOP` predicted for a non-brake target);
-- risk, VLA, and end-to-end latency;
-- peak CUDA allocation;
-- invocation count/rate.
+- `BRAKE_OR_STOP` recall
+- under-reaction and over-reaction
+- unnecessary braking
+- BADAS, VLA, and end-to-end latency
+- peak VRAM
+- VLA invocation rate
 
-`SLOW` and `MANEUVER` have equal urgency rank but are still distinct classes;
-confusing them is a semantic action error, not an under/over-reaction.
-
-Lead-time statistics are produced only for rows with verified event and
-prediction timestamps:
+When the timestamps exist, also report event lead time and actionable-time
+error as separate quantities:
 
 ```text
-lead_time = event_time - prediction_time
+event_lead_time = time_of_event - predicted_action_time
+actionable_time_error = predicted_action_time - human_actionable_time
 ```
 
-The report includes mean, median, distribution data, and fractions at least
-0.5, 1.0, and 2.0 seconds early.
+`actionable_from` is a human field. It is not a BADAS timestamp.
 
-## Threshold selection
+## Thresholds
 
-Candidate trigger thresholds are specified before validation search. Selection
-maximizes validation critical recall subject to an invocation-rate budget; ties
-prefer lower invocation rate, then the higher threshold. Test data are never
-used to select thresholds.
+Candidate thresholds are declared before the validation search. Selection
+maximizes validation critical recall subject to an invocation budget. Ties
+prefer the lower invocation rate, then the higher threshold. Test rows are
+not used to pick thresholds.
 
-## Statistical interpretation
+## Statistics
 
-Use paired bootstrap resampling over source groups, not individual correlated
-frames, for confidence intervals on A–C differences. If too few independent
-groups exist, report instability and raw paired differences rather than a
-misleading significance claim.
+Bootstrap over source videos, not over correlated cutoffs from the same
+video. If too few videos exist, report that instability instead of a
+significance claim.
 
-## Optional adaptation gate
+## Optional adaptation
 
-A frozen action head is attempted only when a stable hidden-state extraction
-path and enough grouped training data exist. LoRA is attempted only after
-zero-shot A–C validation, with a predeclared rationale. Starting targets are
-language-attention `q_proj`, `k_proj`, `v_proj`, and `o_proj`; actual names are
-validated at runtime. The visual encoder and BADAS remain frozen initially.
-
-## Reproducibility
-
-Record Python, NumPy, and Torch seeds; software/model revisions; Git commit and
-dirty state; GPU identity; precision; deterministic settings; and known
-nondeterminism. Fused GPU kernels may not be bitwise deterministic even when
-seeds are fixed; this is reported rather than hidden.
+A frozen action head or Qwen LoRA starts only after zero-shot A/B/C
+validation. Language-attention LoRA targets remain `q_proj`, `k_proj`,
+`v_proj`, and `o_proj`, checked against the loaded module names. The visual
+encoder and BADAS stay frozen.

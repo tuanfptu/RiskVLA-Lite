@@ -1,0 +1,41 @@
+{
+  "status": "BLOCKED",
+  "component": "nexar_collision_prediction",
+  "checked_at": "2026-10-02",
+  "dataset": "nexar-ai/nexar_collision_prediction",
+  "revision": "7535d0656dac31d7da2846913bb69c6331d2a70a",
+  "last_modified": "2026-09-29T14:37:45.000Z",
+  "metadata_access": "VERIFIED",
+  "metadata_scope": "Official dataset card, public file listing, and the six metadata CSV files plus time_to_accident_test_map.csv. Video bytes were not downloaded.",
+  "media": "NOT_DOWNLOADED",
+  "used_storage_bytes": 31379211365,
+  "card_total_file_size": "31.4 GB",
+  "train_videos": 1500,
+  "train_positive_videos": 750,
+  "train_negative_videos": 750,
+  "test_public_videos": 667,
+  "test_private_videos": 677,
+  "action_annotations": "NOT_CREATED",
+  "badas_checkpoint_access": "VERIFIED",
+  "badas_checkpoint_bytes": 3979436545,
+  "badas_checkpoint_download": "NOT_ATTEMPTED",
+  "badas_gpu_runtime": "BLOCKED",
+  "qwen_gpu_runtime": "BLOCKED",
+  "abc_results": "NOT_MEASURED",
+  "lora_status": "NOT_STARTED",
+  "metrics": null,
+  "reasons": [
+    {
+      "code": "media_not_downloaded",
+      "message": "The full Nexar media archive was not downloaded in this Cloud Agent. Persistent storage will hold it later."
+    },
+    {
+      "code": "annotations_not_created",
+      "message": "No human action annotations exist. Collision labels were not converted into actions."
+    },
+    {
+      "code": "gpu_unavailable",
+      "message": "This Cloud Agent has no CUDA GPU. BADAS and Qwen were not run."
+    }
+  ]
+}

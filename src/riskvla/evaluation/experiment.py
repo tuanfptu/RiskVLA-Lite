@@ -101,7 +101,7 @@ def write_experiment(
         **git_provenance(repository),
         "config_file": "config.yaml",
         "dataset_split_version": data_config.get("split_version"),
-        "action_mapping_version": data_config.get("action_mapping_version"),
+        "action_schema_version": data_config.get("action_schema_version"),
         "model_version": {
             "id": vla_config.get("model_id"),
             "revision": vla_config.get("model_revision"),

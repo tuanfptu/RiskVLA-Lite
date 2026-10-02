@@ -6,11 +6,9 @@ import json
 import random
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-
-from riskvla.data.drama_x import DramaXRecord
 
 
 class SplitError(ValueError):
@@ -18,6 +16,44 @@ class SplitError(ValueError):
 
 
 SPLIT_NAMES = ("train", "val", "test")
+DEFAULT_FRACTIONS: dict[str, float] = {"train": 0.70, "val": 0.15, "test": 0.15}
+DEFAULT_SEED = 42
+
+
+@dataclass(frozen=True)
+class GroupedSample:
+    """One evaluation row whose split is inherited from ``group_id``.
+
+    Every cutoff derived from one source video must share that video's group.
+    """
+
+    sample_id: str
+    group_id: str
+    label: str
+    attributes: Mapping[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if not str(self.sample_id).strip():
+            raise SplitError("sample_id must be non-empty")
+        if not str(self.group_id).strip():
+            raise SplitError(
+                f"sample {self.sample_id!r} lacks a defensible group"
+            )
+        if not str(self.label).strip():
+            raise SplitError(f"sample {self.sample_id!r} lacks a label")
+        object.__setattr__(self, "attributes", dict(self.attributes))
+
+    def to_manifest_item(self) -> dict[str, Any]:
+        item: dict[str, Any] = {
+            "id": self.sample_id,
+            "group_id": self.group_id,
+            "label": self.label,
+        }
+        for key, value in self.attributes.items():
+            if key in item:
+                raise SplitError(f"Attribute {key!r} collides with a manifest field")
+            item[key] = value
+        return item
 
 
 @dataclass(frozen=True)
@@ -58,49 +94,42 @@ def assert_no_group_leakage(manifests: Mapping[str, Mapping[str, Any]]) -> None:
 
 
 def create_group_splits(
-    records: Iterable[DramaXRecord],
+    samples: Iterable[GroupedSample],
     *,
-    seed: int = 42,
+    seed: int = DEFAULT_SEED,
     fractions: Mapping[str, float] | None = None,
-    group_field: str | None = None,
     split_version: str = "v1",
     source_sha256: str | None = None,
+    group_field: str = "video_id",
 ) -> SplitResult:
-    """Split records while keeping every verified source group together.
+    """Assign whole source groups to train, validation, and test.
 
     Assignment greedily serves the largest normalized sample/class deficits.
-    Randomization controls group order only and is fully seeded.
+    Randomization controls group order only and is fully seeded. This function
+    does not write a benchmark split; callers must invoke it only after manual
+    annotations exist.
     """
-    split_fractions = dict(
-        fractions or {"train": 0.70, "val": 0.15, "test": 0.15}
-    )
+    split_fractions = dict(fractions or DEFAULT_FRACTIONS)
     _validate_fractions(split_fractions)
-    rows = [record for record in records if record.include_in_evaluation]
+    rows = list(samples)
     if not rows:
         raise SplitError("No evaluable records are available")
-    if any(record.macro_action is None for record in rows):
-        raise SplitError("Every evaluable record must have a mapped macro action")
+    if any(not isinstance(row, GroupedSample) for row in rows):
+        raise SplitError("Split inputs must be GroupedSample values")
+    seen_ids: set[str] = set()
+    for row in rows:
+        if row.sample_id in seen_ids:
+            raise SplitError(f"Duplicate sample id {row.sample_id!r}")
+        seen_ids.add(row.sample_id)
 
-    grouped: dict[str, list[DramaXRecord]] = defaultdict(list)
-    missing_group: list[str] = []
-    for record in rows:
-        group = record.source_group(explicit_field=group_field)
-        if group is None:
-            missing_group.append(record.sample_id)
-        else:
-            grouped[group].append(record)
-    if missing_group:
-        preview = ", ".join(missing_group[:5])
-        raise SplitError(
-            "Cannot create leakage-safe splits: "
-            f"{len(missing_group)} eligible records lack a defensible group "
-            f"(examples: {preview})"
-        )
+    grouped: dict[str, list[GroupedSample]] = defaultdict(list)
+    for row in rows:
+        grouped[row.group_id].append(row)
     if len(grouped) < len(SPLIT_NAMES):
         raise SplitError("At least three independent source groups are required")
 
-    all_labels = sorted({record.macro_action for record in rows if record.macro_action})
-    total_by_label = Counter(record.macro_action for record in rows)
+    all_labels = sorted({row.label for row in rows})
+    total_by_label = Counter(row.label for row in rows)
     target_samples = {
         split: split_fractions[split] * len(rows) for split in SPLIT_NAMES
     }
@@ -115,18 +144,17 @@ def create_group_splits(
     rng = random.Random(seed)
     group_order = list(grouped)
     rng.shuffle(group_order)
-    # Large groups first; stable shuffle resolves equal-size ties.
     group_order.sort(key=lambda group: len(grouped[group]), reverse=True)
 
     assigned_groups: dict[str, list[str]] = {name: [] for name in SPLIT_NAMES}
-    assigned_samples = Counter()
+    assigned_samples: Counter[str] = Counter()
     assigned_labels: dict[str, Counter[str]] = {
         name: Counter() for name in SPLIT_NAMES
     }
 
     for group in group_order:
         group_rows = grouped[group]
-        group_labels = Counter(record.macro_action for record in group_rows)
+        group_labels = Counter(row.label for row in group_rows)
 
         def deficit(split: str) -> float:
             sample_target = max(target_samples[split], 1.0)
@@ -138,7 +166,6 @@ def create_group_splits(
                     (target_labels[split][label] - assigned_labels[split][label])
                     / label_target
                 )
-            # Favor under-filled splits; deterministic name order breaks ties.
             return sample_deficit + sum(label_deficits) / max(len(label_deficits), 1)
 
         chosen = max(SPLIT_NAMES, key=deficit)
@@ -152,9 +179,9 @@ def create_group_splits(
     manifests: dict[str, dict[str, Any]] = {}
     for split_name in SPLIT_NAMES:
         items = [
-            record.to_manifest_item(group)
+            row.to_manifest_item()
             for group in assigned_groups[split_name]
-            for record in grouped[group]
+            for row in grouped[group]
         ]
         items.sort(key=lambda item: item["id"])
         manifests[split_name] = {
@@ -163,35 +190,33 @@ def create_group_splits(
             "split_version": split_version,
             "seed": seed,
             "source_sha256": source_sha256,
-            "group_field": group_field or "video_path",
+            "group_field": group_field,
             "samples": items,
         }
 
     assert_no_group_leakage(manifests)
     report_splits: dict[str, Any] = {}
+    optional_keys = ("native_action", "macro_action", "risk_label", "collision_label")
     for split_name, manifest in manifests.items():
         items = manifest["samples"]
-        report_splits[split_name] = {
+        entry: dict[str, Any] = {
             "samples": len(items),
             "groups": len({item["group_id"] for item in items}),
-            "macro_actions": dict(
-                sorted(Counter(item["macro_action"] for item in items).items())
-            ),
-            "native_actions": dict(
-                sorted(Counter(item["native_action"] for item in items).items())
-            ),
-            "risk_labels": dict(
-                sorted(Counter(item["risk_label"] for item in items).items())
-            ),
+            "labels": dict(sorted(Counter(item["label"] for item in items).items())),
         }
+        for key in optional_keys:
+            if items and all(key in item for item in items):
+                entry[key] = dict(sorted(Counter(item[key] for item in items).items()))
+        report_splits[split_name] = entry
     return SplitResult(
         manifests=manifests,
         report={
             "status": "READY",
             "split_version": split_version,
             "seed": seed,
-            "group_field": group_field or "video_path",
+            "group_field": group_field,
             "source_sha256": source_sha256,
+            "fractions": split_fractions,
             "splits": report_splits,
         },
     )

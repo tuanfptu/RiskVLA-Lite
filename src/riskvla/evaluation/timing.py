@@ -32,7 +32,10 @@ def action_lead_time_metrics(
 
     lead_times = events - predictions
     return {
-        "definition": "event_time - action_prediction_time",
+        "definition": "event_lead_time = time_of_event - predicted_action_time",
+        "distinct_from": (
+            "actionable_time_error = predicted_action_time - human_actionable_time"
+        ),
         "sample_count": int(lead_times.size),
         "mean_seconds": float(np.mean(lead_times)),
         "median_seconds": float(np.median(lead_times)),
@@ -47,6 +50,43 @@ def action_lead_time_metrics(
             for threshold in thresholds
         },
         "lead_times_seconds": lead_times.tolist(),
+    }
+
+
+def actionable_time_error(
+    predicted_action_times: Sequence[float],
+    human_actionable_times: Sequence[float],
+) -> dict[str, Any]:
+    """Error against a human ``actionable_from`` time.
+
+    This is not event lead time. Event lead time compares a prediction with
+    ``time_of_event``; this compares a prediction with the annotated moment an
+    intervention first became justified.
+    """
+    if len(predicted_action_times) != len(human_actionable_times):
+        raise ValueError("predicted and human actionable times must have equal length")
+    if not predicted_action_times:
+        raise ValueError(
+            "Actionable-time error requires human actionable_from timestamps"
+        )
+    predicted = np.asarray(predicted_action_times, dtype=np.float64)
+    human = np.asarray(human_actionable_times, dtype=np.float64)
+    if not np.isfinite(predicted).all() or not np.isfinite(human).all():
+        raise ValueError("All timing inputs must be finite")
+    if np.any(predicted < 0) or np.any(human < 0):
+        raise ValueError("Timing inputs must be non-negative")
+    errors = predicted - human
+    return {
+        "definition": (
+            "actionable_time_error = predicted_action_time - human_actionable_time"
+        ),
+        "distinct_from": "event_lead_time = time_of_event - predicted_action_time",
+        "sample_count": int(errors.size),
+        "mean_seconds": float(np.mean(errors)),
+        "median_seconds": float(np.median(errors)),
+        "minimum_seconds": float(np.min(errors)),
+        "maximum_seconds": float(np.max(errors)),
+        "errors_seconds": errors.tolist(),
     }
 
 

@@ -1,6 +1,6 @@
 # Failure Taxonomy
 
-Failure analysis is performed on paired A/B/C outputs with native labels,
+Failure analysis is performed on paired A/B/C outputs with the human action,
 selected-frame timestamps, risk traces, and access-safe example references.
 Media are never redistributed unless their license explicitly permits it.
 
@@ -43,13 +43,13 @@ Media are never redistributed unless their license explicitly permits it.
 
 ## Ground-truth/data factors
 
-- ambiguous native suggested action;
-- lossy macro-action mapping;
-- missing (`N/A`) target;
-- image/video mismatch;
-- source-group uncertainty or duplicate leakage;
-- no verified event time;
-- annotation does not distinguish comfortable slowing, yielding, and emergency
+- ambiguous human action at the observation cutoff;
+- action inferred from a collision label, BADAS score, or event time;
+- post-cutoff frames seen before the action was assigned;
+- source-video leakage across train, validation, and test;
+- no verified event time when event lead time is reported;
+- no human `actionable_from` when actionable-time error is reported;
+- annotation does not distinguish attention, defensive slowing, and strong
   braking.
 
 ## Conditioning-specific failures
@@ -57,7 +57,7 @@ Media are never redistributed unless their license explicitly permits it.
 - VLA ignores numeric risk context;
 - high risk anchors the VLA toward braking despite benign visual evidence;
 - a noisy slope dominates a more reliable current score;
-- risk scale/calibration shifts between BADAS training data and DRAMA-X;
+- treating an in-domain Nexar result as cross-dataset generalization;
 - temporal features accidentally include future scores;
 - variant prompts differ beyond the declared conditioning block.
 
@@ -68,8 +68,8 @@ Each saved case includes:
 ```text
 sample_id
 source_group (when verified)
-native_label
-macro_target
+human_action
+observation_cutoff
 variant predictions and validity
 selected frame timestamps
 event/prediction timestamps (only when verified)

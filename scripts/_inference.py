@@ -26,8 +26,8 @@ def _resolve_media(raw_path: str, media_root: Path | None) -> Path:
         if rooted.is_file():
             return rooted
     raise FileNotFoundError(
-        f"Media path is not a local file: {raw_path!r}. Populate/localize licensed "
-        "DRAMA-X media and pass --media-root if paths are relative."
+        f"Media path is not a local file: {raw_path!r}. Download licensed Nexar "
+        "media separately and pass --media-root if paths are relative."
     )
 
 
@@ -42,8 +42,14 @@ def _frames_for_sample(
     if video_path:
         resolved = _resolve_media(video_path, media_root)
         timeline = probe_video_timestamps(resolved)
-        cutoff = float(sample.get("prediction_time", timeline[-1]))
-        event_time = sample.get("event_time")
+        cutoff_value = sample.get("observation_cutoff", sample.get("prediction_time"))
+        if cutoff_value is None:
+            raise RuntimeError(
+                f"Sample {sample.get('id')} lacks observation_cutoff; "
+                "refusing to sample the full video"
+            )
+        event_time = sample.get("time_of_event", sample.get("event_time"))
+        cutoff = float(cutoff_value)
         selection = UniformFrameSampler(frame_count).select(
             timeline,
             prediction_cutoff=cutoff,
@@ -152,8 +158,7 @@ def run_zero_shot(
             {
                 "id": sample_id,
                 "group_id": sample.get("group_id"),
-                "native_action": sample.get("native_action"),
-                "target_action": sample.get("macro_action"),
+                "target_action": sample.get("action", sample.get("label")),
                 "variant": variant.value,
                 "prediction": (
                     result.prediction.action if result.prediction is not None else None

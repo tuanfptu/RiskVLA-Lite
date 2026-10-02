@@ -1,4 +1,8 @@
-"""Frozen native-to-macro action mapping."""
+"""LEGACY / ABANDONED FOR CURRENT STUDY.
+
+DRAMA-X native-label mapping. It is not Nexar action ground truth and is not
+used by the primary benchmark.
+"""
 
 from __future__ import annotations
 
@@ -9,8 +13,6 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-
-from riskvla.constants import ACTIONS
 
 
 class ActionMappingError(ValueError):
@@ -43,10 +45,9 @@ class ActionMapping:
             raise ActionMappingError("Mapping root must be a YAML mapping")
 
         declared_actions = tuple(raw.get("macro_actions", ()))
-        if set(declared_actions) != set(ACTIONS) or len(declared_actions) != len(ACTIONS):
-            raise ActionMappingError(
-                f"macro_actions must contain each supported action exactly once: {ACTIONS}"
-            )
+        if not declared_actions or len(set(declared_actions)) != len(declared_actions):
+            raise ActionMappingError("macro_actions must be a non-empty list of unique names")
+        allowed_actions = set(declared_actions)
 
         raw_entries = raw.get("mappings")
         if not isinstance(raw_entries, dict) or not raw_entries:
@@ -59,7 +60,7 @@ class ActionMapping:
             macro = payload.get("macro_action")
             include = payload.get("include_in_evaluation")
             rationale = payload.get("rationale")
-            if macro is not None and macro not in ACTIONS:
+            if macro is not None and macro not in allowed_actions:
                 raise ActionMappingError(f"Unknown macro action {macro!r} for {native_label!r}")
             if include is True and macro is None:
                 raise ActionMappingError(f"Included label {native_label!r} requires a macro action")
@@ -77,7 +78,7 @@ class ActionMapping:
             )
 
         severity = raw.get("severity")
-        if not isinstance(severity, dict) or set(severity) != set(ACTIONS):
+        if not isinstance(severity, dict) or set(severity) != allowed_actions:
             raise ActionMappingError("severity must define every macro action")
         normalized_severity: dict[str, int] = {}
         for action, value in severity.items():

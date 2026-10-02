@@ -5,18 +5,17 @@
   "model_id": "nexar-ai/BADAS-Open",
   "model_revision": "8fda93711e79d72401b0a4efc151b56455885cd2",
   "source_revision": "01368cf5a164a576ae46eae3baf544e4ecdb2946",
-  "access": "UNVERIFIED",
+  "access": "VERIFIED",
   "runtime": "BLOCKED",
   "checkpoint_download": "NOT_ATTEMPTED",
-  "authentication_request_sent": false,
+  "checkpoint_filename": "weights/badas_open.pth",
+  "checkpoint_bytes": 3979436545,
+  "checkpoint_access_method": "authenticated HEAD metadata only; response body was not downloaded",
+  "authentication_request_sent": true,
   "reasons": [
     {
-      "code": "token_not_injected",
-      "message": "HF_TOKEN was absent from this already-running Cloud Agent process. No authenticated Hugging Face request was made, and the checkpoint was not resolved or downloaded."
-    },
-    {
       "code": "gpu_unavailable",
-      "message": "This Cloud Agent has no CUDA GPU. Runtime inference remains blocked until RTX 3090 validation."
+      "message": "This Cloud Agent has no CUDA GPU. The checkpoint body was not downloaded and runtime inference remains blocked."
     }
   ],
   "smoke_test": "NOT_RUN",

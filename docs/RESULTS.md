@@ -1,42 +1,46 @@
 # Results
 
-## Research conclusion: NOT YET MEASURED
+## Research conclusion: NOT MEASURED
 
-There is currently insufficient evidence to answer whether temporal risk
-conditioning improves VLA safety-action selection.
+There is no evidence yet that temporal risk conditioning improves safety-action
+selection. The hypothesis is unchanged and untested.
 
-No accuracy, F1, recall, timing, latency, FPS, memory, or safety-improvement
-number has been filled with a placeholder or synthetic value.
+No accuracy, F1, recall, timing, latency, memory, or safety-improvement number
+has been filled with a placeholder.
 
 ## Primary ablation
 
-| Variant | Visual | Current Risk | Risk Trend | Macro-F1 | Critical Recall | Under-Reaction | Over-Reaction | Latency |
+| Variant | Visual | Current risk | Temporal risk | Macro-F1 | BRAKE_OR_STOP recall | Under-reaction | Over-reaction | Latency |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| A Visual-only | ✓ |  |  | — | — | — | — | — |
-| B Risk-score | ✓ | ✓ |  | — | — | — | — | — |
-| C Temporal-risk | ✓ | ✓ | ✓ | — | — | — | — | — |
+| A Visual only | yes |  |  | — | — | — | — | — |
+| B Current risk | yes | yes |  | — | — | — | — | — |
+| C Temporal risk | yes | yes | yes | — | — | — | — | — |
 
-`—` means not measured, not zero.
+`—` means not measured.
 
-## Trigger efficiency
+## Trigger comparison
 
-| Policy | VLA Invocation Rate | Critical Recall | Macro-F1 | Avg End-to-End Latency |
+| Policy | VLA invocation rate | BRAKE_OR_STOP recall | Macro-F1 | End-to-end latency |
 |---|---:|---:|---:|---:|
 | Always-on | — | — | — | — |
 | Risk threshold | — | — | — | — |
 | Risk + slope | — | — | — | — |
 
-## Blocking evidence
+## Timing
 
-- Public DRAMA-X annotations do not include media or an authoritative source
-  group for leakage-safe splitting.
-- They do not contain event timestamps, so action lead time is unsupported.
-- BADAS weights require approved gated access.
-- The current development machine has no NVIDIA runtime.
+Event lead time and actionable-time error are defined and implemented. Both
+are **NOT MEASURED** because there are no human action timestamps and no model
+predictions.
 
-## Result publication rule
+## Why nothing is filled in
 
-This document may be populated only from committed machine-readable experiment
-records. Each table update must cite experiment IDs, Git commit, split/mapping
-versions, hardware, precision, and confidence/instability analysis. A failed or
-negative ablation remains in the table.
+- Nexar media are not downloaded in this environment.
+- Human action annotations have not been created.
+- The action split has not been created.
+- BADAS and Qwen have not been run on a GPU.
+
+## Publication rule
+
+Fill a cell only from a committed experiment record. Cite the experiment id,
+Git commit, split version, action-schema version, hardware, and precision.
+A negative result stays in the table.

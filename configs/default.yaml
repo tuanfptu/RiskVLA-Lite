@@ -4,14 +4,23 @@ project:
   status: research_prototype
 
 data:
-  dataset: DRAMA-X
-  annotation_revision: 34c3bf70d39b2cb003f4269bfc43aa2610e6073e
-  annotation_sha256: e9b50168f6a34aadeef2169f82fc264d44725db0f0e3591771ad3e2e0a8f95da
-  split_version: blocked-v0
-  action_mapping: configs/action_mapping.yaml
+  dataset: nexar-ai/nexar_collision_prediction
+  dataset_revision: 7535d0656dac31d7da2846913bb69c6331d2a70a
+  # Operator-selected root. Library code must not assume a machine path.
+  root: null
+  action_schema: configs/nexar_actions.yaml
+  annotation_schema: data/annotations/nexar_action_schema.json
+  split_policy: configs/nexar_split_policy.yaml
+  split_version: not-created-v0
+  cutoff:
+    name: pre_event_offsets_v1
+    positive_offsets_seconds: [3.0, 2.0, 1.0]
+    minimum_cutoff_seconds: 0.0
+    negative_policy: explicit_timestamp
 
 vision:
   frame_count: 4
+  later_frame_count: 8
   sampler: uniform
   require_pre_event: true
   max_pixels_per_frame: 50176  # 224 x 224 starting budget; processor may resize.
@@ -47,6 +56,7 @@ vla:
   do_sample: false
   num_beams: 1
   max_new_tokens: 64
+  lora_status: NOT_STARTED
 
 evaluation:
   critical_actions:
@@ -55,7 +65,6 @@ evaluation:
     MAINTAIN: 0
     CAUTION: 1
     SLOW: 2
-    MANEUVER: 2
     BRAKE_OR_STOP: 3
   lead_time_thresholds_seconds:
     - 0.5

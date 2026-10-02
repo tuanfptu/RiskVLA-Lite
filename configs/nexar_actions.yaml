@@ -1,0 +1,26 @@
+version: "nexar-actions-1.0.0"
+status: frozen
+frozen_before_test_evaluation: true
+annotations_status: not_created
+label_source: human_annotation
+dataset: nexar-ai/nexar_collision_prediction
+dataset_revision: 7535d0656dac31d7da2846913bb69c6331d2a70a
+note: >
+  These four names are the primary action schema. They become ground truth
+  only when a person assigns them. Collision labels, BADAS scores, alert
+  times, and model outputs are not action labels.
+
+actions:
+  - MAINTAIN
+  - CAUTION
+  - SLOW
+  - BRAKE_OR_STOP
+
+severity:
+  MAINTAIN: 0
+  CAUTION: 1
+  SLOW: 2
+  BRAKE_OR_STOP: 3
+
+extended_actions_not_in_primary_benchmark:
+  - MANEUVER

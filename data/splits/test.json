@@ -1,9 +1,9 @@
 {
-  "status": "BLOCKED",
+  "status": "NOT_CREATED",
   "split": "test",
-  "split_version": "blocked-v0",
+  "split_version": "not-created-v0",
   "seed": 42,
-  "group_field": null,
+  "group_field": "video_id",
   "samples": [],
-  "reason": "Public DRAMA-X annotations contain no authoritative source-video or sequence group. Random frame-level splitting is prohibited."
+  "reason": "Human Nexar action annotations do not exist yet. Official Nexar train/test divisions are not the action-benchmark split. No rows were invented."
 }

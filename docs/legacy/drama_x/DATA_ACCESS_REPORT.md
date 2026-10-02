@@ -1,3 +1,9 @@
+# LEGACY / ABANDONED FOR CURRENT STUDY
+
+DRAMA-X is not the primary dataset. This note is retained as a historical
+access audit. It does not contain a private download URL. The active dataset
+report is `docs/NEXAR_DATA_REPORT.md`.
+
 # DRAMA-X Data Access Report
 
 Checked: 2026-10-02
@@ -62,9 +68,10 @@ The checked-in inventory was calculated over every canonical row:
 | `Accelerate` | 7 |
 | **Total** | **5,686** |
 
-The mapping in `configs/action_mapping.yaml` is semantic, deterministic, and
-frozen before model evaluation. `N/A` is excluded because it is missing target
-information, not a synonym for `MAINTAIN`.
+The historical mapping now lives at
+`configs/legacy/drama_x_action_mapping.yaml`. It was frozen before any
+DRAMA-X model evaluation. `N/A` was excluded because it is missing target
+information, not a synonym for `MAINTAIN`. It is not Nexar action ground truth.
 
 ## Split and timing metadata
 

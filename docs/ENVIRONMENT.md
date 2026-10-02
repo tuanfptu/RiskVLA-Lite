@@ -13,6 +13,7 @@ Repository runtime setup: no preinstalled project environment
 
 This machine is suitable for code, deterministic unit tests, annotation
 inspection, and artifact review. It cannot verify CUDA model execution.
+Do not download the Nexar archive, the BADAS checkpoint, or Qwen weights here.
 
 ## Target remote machine
 
@@ -22,6 +23,31 @@ OS: Linux
 Python: 3.10–3.12
 PyTorch: select a current 2.x wheel matching the server driver/CUDA runtime
 ```
+
+Expected layout on that machine. These are operator paths, not library
+defaults:
+
+```text
+/workspace/
+├── RiskVLA-Lite/
+├── data/
+│   └── nexar/
+├── checkpoints/
+│   └── badas/
+├── hf_cache/
+└── outputs/
+```
+
+Pass the Nexar directory to the download script:
+
+```bash
+python scripts/download_nexar.py --output /workspace/data/nexar
+```
+
+Set `HF_TOKEN` in the environment first. The script prints the published
+disk requirement (31.4 GB / 31,379,211,365 bytes of repository storage)
+before transferring and can resume. Add `--dry-run` to print that estimate
+without a transfer.
 
 Do not blindly install a CUDA wheel before checking the remote driver's
 supported runtime. Record `nvidia-smi`, `torch.__version__`,

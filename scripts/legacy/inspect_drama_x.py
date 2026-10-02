@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Inspect pinned DRAMA-X annotations and create only group-safe splits."""
+"""LEGACY / ABANDONED FOR CURRENT STUDY.
+
+Inspect pinned DRAMA-X annotations. Not used for the Nexar action benchmark.
+"""
 
 from __future__ import annotations
 
@@ -11,9 +14,9 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from riskvla.data.drama_x import DramaXDataset
-from riskvla.data.labels import ActionMapping
-from riskvla.data.splits import create_group_splits, write_split_result
+from riskvla.data.splits import GroupedSample, create_group_splits, write_split_result
+from riskvla.legacy.action_mapping import ActionMapping
+from riskvla.legacy.drama_x import DramaXDataset
 
 CANONICAL_REVISION = "34c3bf70d39b2cb003f4269bfc43aa2610e6073e"
 CANONICAL_SHA256 = "e9b50168f6a34aadeef2169f82fc264d44725db0f0e3591771ad3e2e0a8f95da"
@@ -70,7 +73,9 @@ def main() -> None:
     )
     parser.add_argument("--download-canonical", action="store_true")
     parser.add_argument(
-        "--mapping", type=Path, default=Path("configs/action_mapping.yaml")
+        "--mapping",
+        type=Path,
+        default=Path("configs/legacy/drama_x_action_mapping.yaml"),
     )
     parser.add_argument("--inventory", type=Path)
     parser.add_argument("--check-inventory", type=Path)
@@ -134,12 +139,40 @@ def main() -> None:
         split_version = (
             f"dramax-{dataset.sha256[:8]}-mapping-{mapping.version}-seed-{args.seed}"
         )
+        samples: list[GroupedSample] = []
+        missing_groups = 0
+        for record in dataset:
+            if not record.include_in_evaluation or record.macro_action is None:
+                continue
+            group = record.source_group(explicit_field=args.group_field)
+            if not group:
+                missing_groups += 1
+                continue
+            samples.append(
+                GroupedSample(
+                    sample_id=record.sample_id,
+                    group_id=group,
+                    label=record.macro_action,
+                    attributes={
+                        "native_action": record.native_action,
+                        "macro_action": record.macro_action,
+                        "risk_label": record.risk_label,
+                        "image_path": record.image_path,
+                        "video_path": record.video_path,
+                    },
+                )
+            )
+        if missing_groups:
+            raise RuntimeError(
+                "Cannot create leakage-safe splits: "
+                f"{missing_groups} eligible records lack a defensible group"
+            )
         result = create_group_splits(
-            dataset,
+            samples,
             seed=args.seed,
-            group_field=args.group_field,
             split_version=split_version,
             source_sha256=dataset.sha256,
+            group_field=args.group_field or "video_path",
         )
         write_split_result(result, args.create_splits)
         summary["split_report"] = result.report

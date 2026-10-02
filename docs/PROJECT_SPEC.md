@@ -1,165 +1,142 @@
 # RiskVLA-Lite Project Specification
 
-Status: infrastructure-ready; benchmark execution blocked on external media and
-model access as described below.
+Status: Nexar infrastructure is in place. Media, human actions, and GPU
+measurements are not.
 
-## Objective
+## Question
 
-RiskVLA-Lite tests one falsifiable question:
+> Can temporal ego-collision risk signals improve the accuracy, timeliness,
+> and efficiency of a lightweight vision-language action selector on
+> real-world dashcam safety scenarios?
 
-> Does conditioning a lightweight visual-language action selector on temporal
-> collision-risk signals improve safety-action classification, action timing,
-> or selective-invocation efficiency beyond visual input alone?
+Hypothesis to test, not a result:
 
-The system recommends a discrete ego-vehicle safety action. It is not a
-controller, planner, certified driver-assistance system, or safety case.
+> Temporal BADAS risk conditioning improves safety-action selection relative
+> to the same Qwen3-VL-2B model using visual evidence alone.
 
-## System boundary
+The system recommends one discrete safety action. It is not a controller,
+planner, certified driver-assistance system, or safety case.
+
+## Pipeline
 
 ```text
-dashcam media
-  -> frozen RiskProvider
-  -> normalized risk sequence and temporal features
-  -> leakage-safe frame selection
-  -> replaceable VLA action selector
-  -> one validated macro-action
+Nexar dashcam video
+        |
+        +------ BADAS-Open (frozen)
+        |           |
+        |           +--> R(t)
+        |           +--> risk slope
+        |           +--> recent peak
+        |
+        +------ pre-cutoff visual frames
+                        |
+                        v
+                  Qwen3-VL-2B
+                        +
+                  temporal risk
+                        |
+                        v
+                 SAFETY ACTION
 ```
 
-The upstream detector answers *when risk is emerging*. The VLA answers *what
-action is appropriate*. No actuator interface is included.
+BADAS answers when collision risk is emerging. The action selector answers
+what the ego vehicle should do. No actuator interface is included.
 
-## Primary implementations
+## Primary pieces
 
-- Risk provider: BADAS-Open, frozen, loaded only from an official checkpoint.
+- Dataset: `nexar-ai/nexar_collision_prediction`, revision
+  `7535d0656dac31d7da2846913bb69c6331d2a70a`.
+- Risk provider: BADAS-Open, frozen, official checkpoint only.
 - VLA: `Qwen/Qwen3-VL-2B-Instruct`.
-- Benchmark annotations: the canonical `mgod96/DRAMA-X` JSONL.
-- Target hardware: one NVIDIA RTX 3090 (24 GB); normal BF16/FP16 is measured
-  before any quantized configuration.
+- Actions: human labels on a 300–500 clip subset.
+- Hardware target: one NVIDIA RTX 3090. This development environment has no
+  CUDA GPU, so model runs wait for that machine.
 
-Both model integrations sit behind project-owned interfaces. Mock providers
-exist only for deterministic tests and infrastructure demonstrations; mock
-outputs must never be reported as benchmark results.
+Mock providers exist for tests. Their outputs are not benchmark results.
 
-## Fixed action space
-
-The initial macro-actions are:
+## Action space
 
 1. `MAINTAIN`
 2. `CAUTION`
 3. `SLOW`
 4. `BRAKE_OR_STOP`
-5. `MANEUVER`
 
-`configs/action_mapping.yaml` is versioned and frozen before model evaluation.
-Every processed record keeps its exact native `suggested_action`. The native
-`N/A` label is explicitly excluded rather than being reinterpreted as
-`MAINTAIN`.
+`configs/nexar_actions.yaml` is the active schema. `MANEUVER` is listed only
+as a future extension. The old DRAMA-X native-label file is under
+`configs/legacy/` and must not be used as Nexar ground truth.
 
 ## Primary ablation
 
 | Variant | Visual context | Current risk | Temporal risk |
 |---|---:|---:|---:|
-| A — visual-only | yes | no | no |
-| B — current-risk | yes | `R_t` | no |
-| C — temporal-risk | yes | `R_t` | slope and recent peak |
+| A — visual only | yes | no | no |
+| B — current risk | yes | `R_t` | no |
+| C — temporal risk | yes | `R_t` | slope and recent peak |
 
-All variants use the same eligible examples, split version, sampled-frame
-budget, decoding policy, and output parser. Greedy decoding and strict JSON
-validation are used. Invalid model output remains invalid and is counted.
+A, B, and C use the same frames, eligible ids, decoding policy, and parser.
+The default frame count is 4. An eight-frame run is a later experiment.
+Risk-centered sampling is separate because it changes the images.
 
-An optional frozen action head or LoRA adaptation is out of the primary scope
-until A–C have valid validation results. LoRA never updates BADAS or the visual
-encoder initially.
+Zero-shot A/B/C comes before a frozen action head or LoRA. LoRA status is
+`NOT_STARTED`. BADAS is never fine-tuned.
 
-## Data and leakage policy
+## Cutoffs and leakage
 
-- Seed: 42.
-- Split unit: verified source video, clip, or source sequence.
-- Individual image IDs are never treated as independent split groups unless
-  the dataset owner documents that they are independent.
-- Frames selected for an early-action prediction must be at or before the
-  prediction cutoff and strictly before a known hazardous-event time.
-- Test data are evaluated once after mapping, prompts, thresholds, and configs
-  are frozen from training/validation work.
+Positive candidate cutoffs are `time_of_event` minus a configured offset.
+The default candidates are 3, 2, and 1 seconds. An experiment may use a
+subset. Negative clips store an explicit observation time and do not receive
+a fabricated event.
 
-The public DRAMA-X annotation currently has empty media fields and no
-authoritative group or event-time field. Consequently, committed split
-manifests are blocked-state manifests, not invented random splits. The split
-tool refuses to proceed without defensible grouping metadata.
+Frames must satisfy `frame_time <= observation_cutoff`. When an event time
+exists, they must also satisfy `frame_time < time_of_event`. Risk features
+at cutoff `t` may use only scores at or before `t`.
+
+## Splits
+
+Do not reuse the official Nexar train/test division as the action split.
+After manual labels exist, assign source videos with seed 42 to 70% train,
+15% validation, and 15% test. All cutoffs from one video share a split.
+Thresholds are selected on validation only.
 
 ## Metrics
 
-Primary classification metrics:
+Classification: accuracy, macro-F1, and per-class precision, recall, and F1.
 
-- accuracy;
-- macro-F1;
-- per-class precision, recall, and F1;
-- confusion matrix;
-- invalid-output rate.
+Safety: `BRAKE_OR_STOP` recall, under-reaction, over-reaction, and
+unnecessary braking.
 
-Safety metrics:
+Timing, only when the required human or event timestamps exist:
 
-- `BRAKE_OR_STOP` recall;
-- severity-based under-reaction rate;
-- severity-based over-reaction rate;
-- unnecessary-braking rate.
+- event lead time = `time_of_event - predicted_action_time`
+- actionable-time error = `predicted_action_time - human_actionable_time`
 
-Efficiency metrics:
+These two numbers are not interchangeable.
 
-- risk-provider, VLA, and end-to-end latency;
-- peak GPU memory;
-- VLA invocation count/rate.
+Efficiency: BADAS latency, VLA latency, end-to-end latency, peak VRAM, and
+VLA invocation rate under always-on, risk-threshold, and risk-plus-slope
+invocation.
 
-Temporal metrics are reported only when a verified event timestamp and
-prediction timestamp exist. Action lead time is
-`event_time - prediction_time`; positive values are pre-event.
+## Selective invocation
 
-## Trigger policy
-
-Two validation-tuned policies are supported:
-
-```text
-current:   R_t > risk_threshold
-temporal:  R_t > risk_threshold OR slope > slope_threshold
-```
-
-Thresholds are configuration values. They may be selected on validation data
-but never optimized on test data.
-
-## Experiment record
-
-Each experiment directory contains the resolved configuration and a metrics
-record with:
-
-- experiment ID and UTC timestamp;
-- Git commit and dirty-state flag;
-- split and action-mapping versions;
-- model and risk-provider versions;
-- seed, GPU, precision;
-- metrics, latency, and peak VRAM;
-- artifact status (`MEASURED`, `BLOCKED`, or `FAILED`).
+Compare always-on VLA, a risk-threshold trigger, and a risk-plus-slope
+trigger. Choose thresholds on validation. Do not tune them on test.
 
 ## Evidence gates
 
-A component is called working only after a meaningful runtime check.
+- Nexar media: downloaded under the official license, outside this cloud
+  environment.
+- Actions: a person fills the schema. No automatic action labels.
+- BADAS: official checkpoint loads on the GPU machine and one real video
+  yields a finite post-warm-up sequence.
+- Qwen: official weights produce one parseable action object from four real
+  pre-cutoff frames.
+- A/B/C: measured on the human subset after the split exists.
 
-- BADAS: official checkpoint loads, one real video runs, and a bounded finite
-  post-warm-up score sequence is produced.
-- Qwen: official weights load, four real frames produce parseable structured
-  output, and device/latency/VRAM are recorded.
-- DRAMA-X benchmark: media resolve, split grouping is defensible, and all
-  eligible examples map without unknown labels.
-- Early action: verified event timestamps exist and all selected frames precede
-  each event.
+## Contribution under test
 
-As of 2026-10-02, none of these model/data runtime gates has been claimed
-without the required external assets. Unit-tested infrastructure is reported
-separately from measured research evidence.
+1. Risk-conditioned lightweight safety-action selection.
+2. Selective, risk-triggered VLA invocation.
+3. Early-action evaluation on human-annotated Nexar clips.
 
-## Kill criteria
-
-The hypothesis is unsupported when temporal conditioning fails to improve
-stable safety/action metrics, introduces leakage, lowers critical recall
-materially, activates too late, has impractical latency, or relies on labels
-too ambiguous for the proposed endpoint. Negative and mixed outcomes are valid
-results and must be reported without reinterpretation.
+No novelty, safety, or production claim is made before those measurements
+exist.

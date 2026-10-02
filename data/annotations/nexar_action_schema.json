@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nexar_action_schema.json",
+  "title": "RiskVLA-Lite Nexar human action annotation",
+  "description": "One manually assigned safety action for a Nexar clip at an explicit observation cutoff. Collision labels, BADAS scores, alert times, and model outputs are context, not the action. Official Nexar metadata may be stored under nexar_metadata and must not be used to fill action.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "video_id",
+    "source_split",
+    "collision_label",
+    "time_of_event",
+    "time_of_alert",
+    "observation_cutoff",
+    "action",
+    "actionable_from",
+    "ego_relevance",
+    "confidence",
+    "ambiguous",
+    "annotator",
+    "notes"
+  ],
+  "properties": {
+    "video_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable Nexar video id (file stem). Globally unique at dataset revision 7535d0656dac31d7da2846913bb69c6331d2a70a."
+    },
+    "source_split": {
+      "type": "string",
+      "enum": ["train", "test-public", "test-private"]
+    },
+    "collision_label": {
+      "type": "integer",
+      "enum": [0, 1],
+      "description": "Official Nexar collision/near-collision label. Not an action."
+    },
+    "time_of_event": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "description": "Official event time in seconds for positive clips. Null for negative clips. Not an action label."
+    },
+    "time_of_alert": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "description": "Official alert time in seconds when present. Not an action label."
+    },
+    "observation_cutoff": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Latest timestamp the annotator was allowed to see. Must be strictly before time_of_event when that time exists."
+    },
+    "action": {
+      "type": "string",
+      "enum": ["MAINTAIN", "CAUTION", "SLOW", "BRAKE_OR_STOP"]
+    },
+    "actionable_from": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "description": "Human timestamp when an intervention first becomes justified. Null when the annotator cannot identify it. Not derived from BADAS."
+    },
+    "ego_relevance": {
+      "type": "string",
+      "enum": ["none", "indirect", "direct"]
+    },
+    "confidence": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "ambiguous": {
+      "type": "boolean"
+    },
+    "annotator": {
+      "type": "string",
+      "minLength": 1
+    },
+    "notes": {
+      "type": "string"
+    },
+    "nexar_metadata": {
+      "type": "object",
+      "description": "Preserved official Nexar metadata. Ignored when reading the action."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"collision_label": {"const": 1}},
+        "required": ["collision_label"]
+      },
+      "then": {
+        "properties": {"time_of_event": {"type": "number"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"collision_label": {"const": 0}},
+        "required": ["collision_label"]
+      },
+      "then": {
+        "properties": {"time_of_event": {"type": "null"}}
+      }
+    }
+  ]
+}
