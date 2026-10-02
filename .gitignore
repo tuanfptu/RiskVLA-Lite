@@ -26,6 +26,9 @@ venv/
 data/raw/
 data/processed/
 data/media/
+data/nexar/
+data/annotations/*.jsonl
+data/annotations/candidates/
 datasets/
 *.mp4
 *.avi
@@ -57,7 +60,6 @@ outputs/*
 # Generated artifacts; committed evidence files are explicitly allowed
 artifacts/*
 !artifacts/.gitkeep
-!artifacts/label_inventory.json
 
 # Notebook checkpoints
 .ipynb_checkpoints/

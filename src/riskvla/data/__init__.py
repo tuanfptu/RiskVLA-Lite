@@ -1,6 +1,13 @@
-"""DRAMA-X data contracts, action mapping, and split utilities."""
+"""Nexar data contracts, human action annotations, and leakage-safe splits."""
 
-from riskvla.data.drama_x import DramaXDataset, DramaXRecord
-from riskvla.data.labels import ActionMapping
+from riskvla.data.actions import NexarActionSchema
+from riskvla.data.annotations import ActionAnnotation, validate_annotation
+from riskvla.data.nexar import NexarDataset, NexarRecord
 
-__all__ = ["ActionMapping", "DramaXDataset", "DramaXRecord"]
+__all__ = [
+    "ActionAnnotation",
+    "NexarActionSchema",
+    "NexarDataset",
+    "NexarRecord",
+    "validate_annotation",
+]

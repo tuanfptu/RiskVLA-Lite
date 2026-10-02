@@ -61,6 +61,8 @@ def test_visual_prompt_contains_no_risk_values() -> None:
     assert "slope" not in current
     assert "Recent risk slope" in temporal
     assert "Recent maximum risk: 0.500" in temporal
+    assert "MANEUVER" not in prompt
+    assert "MANEUVER" not in temporal
 
 
 def test_invalid_variant_feature_contract_fails() -> None:
@@ -74,19 +76,30 @@ def test_blocker_manifests_contain_no_fabricated_metrics() -> None:
     badas = json.loads(
         (ROOT / "outputs/blockers/badas_runtime.json").read_text(encoding="utf-8")
     )
-    drama = json.loads(
-        (ROOT / "outputs/blockers/drama_media.json").read_text(encoding="utf-8")
+    nexar = json.loads(
+        (ROOT / "outputs/blockers/nexar_media.json").read_text(encoding="utf-8")
     )
-    assert badas["access"] == "UNVERIFIED"
     assert badas["runtime"] == "BLOCKED"
-    assert badas["checkpoint_download"] == "NOT_ATTEMPTED"
-    assert drama["access"] == "UNVERIFIED"
-    assert drama["media_runtime"] == "NOT_DOWNLOADED"
-    assert drama["archive_inspection"] == "NOT_ATTEMPTED"
-    for payload in (badas, drama):
+    assert badas["access"]["authenticated"] is True
+    assert badas["access"]["checkpoint_resolved"] is True
+    assert badas["access"]["checkpoint_downloaded"] is False
+    assert badas["access"]["checkpoint_bytes"] == 3979436545
+    assert badas["access"]["lfs_oid"] == (
+        "6b1ba91504542582412fee5100a17d6e06c87cb09619efec2efc34484f7042aa"
+    )
+    assert {item["code"] for item in badas["reasons"]} >= {
+        "gpu_unavailable",
+        "checkpoint_cannot_be_loaded",
+    }
+    assert nexar["metadata_access"] == "VERIFIED"
+    assert nexar["media"] == "NOT_DOWNLOADED"
+    assert nexar["action_annotations"] == "NOT_CREATED"
+    assert nexar["abc_results"] == "NOT_MEASURED"
+    assert not (ROOT / "outputs/blockers/drama_media.json").exists()
+    for payload in (badas, nexar):
         assert payload["status"] == "BLOCKED"
         assert payload["metrics"] is None
         assert payload["reasons"]
         serialized = json.dumps(payload)
-        assert "hf_" not in serialized
         assert "://" not in serialized
+        assert "hf_" not in serialized.replace('"hf_token_present"', "")

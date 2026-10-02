@@ -8,23 +8,19 @@ Primary sources:
 - [Official gated model repository](https://huggingface.co/nexar-ai/BADAS-Open)
 - [V-JEPA2 base model](https://huggingface.co/facebook/vjepa2-vitl-fpc16-256-ssv2)
 
-## Access recheck: UNVERIFIED
+## Access recheck: VERIFIED, body not downloaded
 
-On 2026-10-02 the running Cloud Agent process was checked for `HF_TOKEN`
-without printing or logging a credential. The variable was absent
-(`set=false`). No Hugging Face authentication, model-access, or checkpoint
-resolution request was sent.
-
-This is not evidence that the Hugging Face account lacks BADAS access. Cursor
-injects Runtime Secrets into an agent when that agent starts; an already
-running agent does not receive secrets added later. The checkpoint therefore
-remains unresolved in this process.
+On 2026-10-02 an authenticated HEAD request resolved
+`nexar-ai/BADAS-Open` revision `8fda93711e79d72401b0a4efc151b56455885cd2`,
+file `weights/badas_open.pth`. The response reported 3,979,436,545 bytes,
+which matches the size expected by the adapter. The checkpoint body was not
+downloaded. The token was not printed.
 
 | Check | Status |
 |---|---|
-| Hugging Face authentication | **UNVERIFIED** |
-| `nexar-ai/BADAS-Open` access | **UNVERIFIED** |
-| Checkpoint resolution/download | **NOT ATTEMPTED** |
+| Hugging Face authentication | **VERIFIED** |
+| `nexar-ai/BADAS-Open` file metadata | **VERIFIED** |
+| Checkpoint body download | **NOT ATTEMPTED** |
 | GPU inference | **BLOCKED** |
 
 No latency, VRAM, or probability sequence is claimed.
@@ -60,7 +56,8 @@ exception message begins with `BLOCKED` and names every applicable reason:
 
 On this machine the remaining manifest reasons are `gpu_unavailable` and
 `checkpoint_cannot_be_loaded`. No alternate predictor is substituted. The
-checked-in manifest is `outputs/blockers/badas_runtime.json`.
+checked-in manifest is `outputs/blockers/badas_runtime.json`. Runtime stays
+blocked until the checkpoint body is loaded on a CUDA machine.
 
 ## VERIFIED source contract
 
@@ -77,8 +74,8 @@ The current source:
 
 The output is best described as the model's accident/near-miss class score,
 not as a calibrated physical collision probability. The repository's default
-`0.8` trigger is an application default, not a validated threshold for
-DRAMA-X.
+`0.8` trigger is an application default, not a validated threshold for the
+Nexar action subset.
 
 The checkpoint is a roughly 3.98 GB PyTorch pickle. Loading also requires the
 public V-JEPA2 base weights. BADAS code is Apache-2.0; the base model is MIT.
@@ -152,7 +149,9 @@ sequence.
 - Whether the current reconstructed attention probe exactly matches the gated
   checkpoint (the model card and current source describe different pooling).
 - Exact checkpoint keys and compatibility warnings.
-- Calibration, transfer to DRAMA-X, and useful validation thresholds.
+- Calibration and useful validation thresholds on the human Nexar subset.
+- Any claim of cross-dataset generalization. Nexar is in-domain for BADAS;
+  see `docs/LIMITATIONS.md`.
 - Real RTX 3090 latency and memory.
 
 These questions remain open until the resolved checkpoint is downloaded and

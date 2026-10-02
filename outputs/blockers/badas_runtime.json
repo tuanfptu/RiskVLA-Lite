@@ -6,6 +6,7 @@
   "model_revision": "8fda93711e79d72401b0a4efc151b56455885cd2",
   "source_revision": "01368cf5a164a576ae46eae3baf544e4ecdb2946",
   "checkpoint_filename": "weights/badas_open.pth",
+  "runtime": "BLOCKED",
   "access": {
     "hf_token_present": true,
     "authenticated": true,

@@ -1,0 +1,13 @@
+status: not_created
+reason: >
+  Manual Nexar action annotations do not exist yet. Official Nexar train and
+  test divisions are collision-prediction splits, not the action benchmark.
+unit: source_video
+derived_cutoffs: same_split_as_source_video
+seed: 42
+fractions:
+  train: 0.70
+  val: 0.15
+  test: 0.15
+official_nexar_splits_used_as_action_splits: false
+annotation_target_clips: [300, 500]

@@ -8,11 +8,14 @@ from pathlib import Path
 from typing import Any
 
 from riskvla.config import load_config
-from riskvla.data.labels import ActionMapping
+from riskvla.data.actions import NexarActionSchema
 from riskvla.evaluation.experiment import write_experiment
 from riskvla.evaluation.latency import LatencyMeasurement, summarize_latency
 from riskvla.evaluation.metrics import evaluate_actions
-from riskvla.evaluation.timing import action_lead_time_metrics
+from riskvla.evaluation.timing import (
+    action_lead_time_metrics,
+    actionable_time_error,
+)
 from riskvla.io import read_jsonl
 
 
@@ -28,8 +31,8 @@ def main() -> None:
     args = parser.parse_args()
 
     config = load_config(args.config)
-    mapping = ActionMapping.from_yaml(config["data"]["action_mapping"])
-    mapping.require_frozen()
+    schema = NexarActionSchema.from_yaml(config["data"]["action_schema"])
+    schema.require_frozen()
     rows = list(read_jsonl(args.predictions))
     if not rows:
         raise RuntimeError("Prediction file is empty")
@@ -62,7 +65,7 @@ def main() -> None:
         "classification": evaluate_actions(
             y_true,
             y_pred,
-            severity=mapping.severity,
+            severity=schema.severity,
             critical_actions=config["evaluation"]["critical_actions"],
         ),
         "evidence_scope": "SYNTHETIC_INFRASTRUCTURE" if synthetic else "BENCHMARK",
@@ -94,7 +97,32 @@ def main() -> None:
     else:
         metrics["timing"] = {
             "status": "UNSUPPORTED",
+            "definition": "event_lead_time = time_of_event - predicted_action_time",
             "reason": "No verified event and prediction timestamp pairs",
+        }
+    metrics["event_lead_time"] = metrics["timing"]
+
+    actionable_pairs = [
+        (row.get("predicted_action_time"), row.get("human_actionable_time"))
+        for row in rows
+    ]
+    verified_actionable = [
+        (float(predicted), float(human))
+        for predicted, human in actionable_pairs
+        if predicted is not None and human is not None
+    ]
+    if verified_actionable:
+        metrics["actionable_time_error"] = actionable_time_error(
+            [item[0] for item in verified_actionable],
+            [item[1] for item in verified_actionable],
+        )
+    else:
+        metrics["actionable_time_error"] = {
+            "status": "UNSUPPORTED",
+            "definition": (
+                "actionable_time_error = predicted_action_time - human_actionable_time"
+            ),
+            "reason": "No human actionable_from timestamps were provided",
         }
 
     latency_measurements = [
@@ -111,7 +139,7 @@ def main() -> None:
     if len(split_versions) != 1:
         raise RuntimeError(f"Mixed split versions in predictions: {split_versions}")
     config["data"]["split_version"] = next(iter(split_versions))
-    config["data"]["action_mapping_version"] = mapping.version
+    config["data"]["action_schema_version"] = schema.version
 
     destination = write_experiment(
         config=config,

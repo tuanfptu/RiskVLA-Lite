@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Validate optional LoRA targets; training remains gated on baseline evidence."""
+"""Optional LoRA setup. Status: NOT STARTED.
+
+Training remains gated on zero-shot A/B/C evidence and is not part of the
+Nexar dataset pivot.
+"""
 
 from __future__ import annotations
 

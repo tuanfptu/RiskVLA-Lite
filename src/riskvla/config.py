@@ -8,6 +8,8 @@ from typing import Any
 
 import yaml
 
+from riskvla.constants import ACTIONS
+
 
 class ConfigError(ValueError):
     """Raised when a project configuration is malformed."""
@@ -64,6 +66,14 @@ def validate_experiment_config(config: dict[str, Any]) -> None:
         raise ConfigError("Experiment config is missing vla/risk fields") from exc
     if variant not in VARIANT_FEATURES:
         raise ConfigError(f"Unknown experiment variant: {variant!r}")
+    severity = config.get("evaluation", {}).get("severity")
+    if severity is not None and set(severity) != set(ACTIONS):
+        raise ConfigError(
+            "evaluation.severity must define exactly the primary four actions"
+        )
+    frame_count = config.get("vision", {}).get("frame_count")
+    if frame_count is not None and frame_count != 4:
+        raise ConfigError("The primary frame budget is 4; 8 frames is a later experiment")
     expected = VARIANT_FEATURES[variant]
     if variant == "visual_only":
         if enabled or features:

@@ -1,4 +1,8 @@
-"""Strict loader for canonical and access-populated DRAMA-X JSONL files."""
+"""LEGACY / ABANDONED FOR CURRENT STUDY.
+
+Strict loader for canonical and access-populated DRAMA-X JSONL files.
+DRAMA-X is not the primary RiskVLA-Lite dataset.
+"""
 
 from __future__ import annotations
 
@@ -10,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from riskvla.data.labels import ActionMapping
+from riskvla.legacy.action_mapping import ActionMapping
 
 REQUIRED_FIELDS = {
     "image_path",

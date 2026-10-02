@@ -1,63 +1,47 @@
 # Data Split Report
 
-## Status: BLOCKED
+## Status: NOT CREATED
 
-No benchmark train/validation/test split is claimed.
+No action-benchmark train, validation, or test split is claimed.
 
-The canonical public DRAMA-X file contains 5,686 unique sample IDs but no
-authoritative source-video, recording-session, sequence-group, event-time, or
-official split field. Both media path columns are empty. A random row split
-could place correlated frames or derived examples from the same source in
-different partitions.
+`data/splits/` contains empty `NOT_CREATED` manifests. They are blockers, not
+experimental results. The suggested fractions below are policy constants in
+`configs/nexar_split_policy.yaml`. They have not been applied to data.
 
-The committed manifests under `data/splits/` intentionally contain:
+## Why the official Nexar divisions are not the action split
 
-```json
-{
-  "status": "BLOCKED",
-  "samples": []
-}
-```
+The official dataset has `train`, `test-public`, and `test-private`. Those
+divisions serve collision-time prediction:
 
-They are machine-readable blockers, not empty experimental results.
+- Training videos are the long, unclipped clips. The card describes them as
+  typically about 40 seconds, with `time_of_event` on positive cases.
+- Test videos are about 10 seconds and already end 0.5, 1.0, or 1.5 seconds
+  before an event. The paper describes up to three crops from one source video.
+- `time_to_accident_test_map.csv` confirms that structure at this revision:
+  568 rows and columns `0.5`, `1.0`, and `1.5` hold 568, 464, and 312
+  mutually exclusive test ids (1,344 clips).
+- The official label is collision versus normal driving, not a safety action.
+- This study's labels will be human actions on explicitly stored cutoffs.
 
-## Frozen split policy
+Using the official test set as our test split would mix a different clip
+construction and a different task into the action benchmark. It would also
+place derivative crops of one source video on opposite sides of a split
+unless the map's row is the group. The first human subset therefore stays
+on official training videos, where each file is its own source clip.
+
+The first human subset should therefore be drawn from official **train**
+videos, which are one file per clip and still contain the pre-event context.
+Our own split is applied only after the actions exist.
+
+## Policy, once annotations exist
 
 - Seed: 42.
-- Target fractions once groups exist: train 70%, validation 15%, test 15%.
-- Unit of assignment: verified source video/clip/sequence group.
-- All rows in one group must stay in one partition.
-- Group names must come from an explicit field or populated source-video
-  reference. Undocumented parsing of unique image IDs is disabled.
-- The generated report must include sample, group, native-label, macro-action,
-  and risk-label distributions.
-- Mapping, split code, seed, source checksum, and split version are frozen
-  before final test evaluation.
+- Fractions: train 70%, validation 15%, test 15%.
+- Assignment unit: source `video_id`.
+- Every cutoff derived from one video stays in that video's split.
+- Thresholds are chosen on validation only.
+- Official Nexar test subsets are not reused as this action split unless a
+  later, verified source-video map says that is safe.
 
-## Required evidence to unblock
-
-One of the following is needed:
-
-1. an official DRAMA-X train/validation/test manifest;
-2. an owner-documented mapping from row ID to source recording; or
-3. populated media metadata with a stable source-video/clip reference whose
-   grouping semantics are confirmed.
-
-After access, run:
-
-```bash
-python scripts/inspect_dataset.py \
-  --annotations data/raw/drama_x_populated.jsonl \
-  --mapping configs/action_mapping.yaml \
-  --create-splits data/splits
-```
-
-The split builder validates zero group overlap and is deterministic. It fails
-closed if any eligible row lacks a defensible group.
-
-## Temporal limitation
-
-DRAMA-X's public rows have no verified event timestamp. These splits, once
-unblocked, support action-selection metrics but do not by themselves support
-action lead time. A separate temporal dataset or owner-supplied timing metadata
-is required for that endpoint.
+The splitter refuses a blank group and checks that no `video_id` appears in
+more than one partition. It is deterministic for a fixed seed and input.

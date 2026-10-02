@@ -6,11 +6,10 @@ from riskvla.risk.features import RiskFeatures
 from riskvla.vla.conditioning import ConditioningVariant, build_conditioning_context
 
 ACTION_DEFINITIONS = """\
-- MAINTAIN: continue/proceed without a new protective maneuver
-- CAUTION: monitor closely and proceed conservatively
-- SLOW: reduce speed or yield while remaining in the current path
-- BRAKE_OR_STOP: brake decisively or stop
-- MANEUVER: carefully change path to avoid the hazard"""
+- MAINTAIN: no meaningful defensive intervention is required at the observation cutoff
+- CAUTION: a potential hazard deserves increased attention, but immediate deceleration or braking is not yet justified
+- SLOW: defensive deceleration is appropriate, but emergency or strong braking is not yet justified
+- BRAKE_OR_STOP: immediate substantial braking or stopping is justified by the visible safety situation"""
 
 
 def build_action_prompt(
